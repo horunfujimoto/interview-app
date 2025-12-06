@@ -32,7 +32,7 @@ export const ApplicantLoginPage = ({}: ApplicantLoginPageProps) => {
           {/* Left Side: Avatar and Promo Area (hidden on md and down) */}
           <Col md={6} className="p-4 d-none d-md-flex flex-column justify-content-center align-items-center text-center" style={{ background: 'linear-gradient(135deg, #bfdbfe 0%, #60a5fa 100%)' }}>
             <span style={{ fontSize: '80px', filter: 'drop-shadow(3px 3px 5px rgba(0,0,0,0.2))' }}>🐇</span>
-            <Title level={2} className="mt-4 text-white fw-bold">AI面接官がお待ちしています</Title>
+            <Title level={2} className="mt-4 text-white fw-bold">面接官がお待ちしています</Title>
             <p className="mt-2 text-sm text-gray-100">IDとパスワードを入力して、面接を開始してください。</p>
             <div className="mt-4 w-100 px-4">
               <div className="d-flex align-items-center text-white text-sm mb-2">
@@ -63,7 +63,7 @@ export const ApplicantLoginPage = ({}: ApplicantLoginPageProps) => {
             />
 
             <p className="text-xs text-muted text-center mt-3">
-              本アプリはPCブラウザ（Chrome/Edge推奨）専用です。
+              ※本アプリはPCブラウザ（Chrome/Edge推奨）専用です。
             </p>
           </Col>
         </Row>
