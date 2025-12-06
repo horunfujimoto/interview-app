@@ -1,5 +1,6 @@
 import { Badge, Button, Checkbox, Input, Message, Select, Title } from '@/atoms';
 import { Breadcrumb, Card, FormField, InputGroup, Modal, Pagination, Table } from '@/molecules';
+import { LoginForm } from '@/organisms'; // Import LoginForm
 import { Alert, Container, Form, Stack, InputGroup as BootstrapInputGroup } from 'react-bootstrap';
 import { ArrowRight, CheckCircle, Save, Mail, Lock } from 'lucide-react';
 import { useState } from 'react';
@@ -15,6 +16,18 @@ const tableItems = [
     { id: 2, firstName: 'Jacob', lastName: 'Thornton', handle: '@fat' },
     { id: 3, firstName: 'Larry the Bird', lastName: '', handle: '@twitter' },
 ];
+
+const handleLoginSubmit = async (loginId: string, password: string): Promise<boolean> => {
+  console.log('Attempting login with:', { loginId, password });
+  await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+  if (loginId === 'test' && password === 'password') {
+    alert('Login successful (mock)!');
+    return true;
+  } else {
+    alert('Login failed (mock)!');
+    return false;
+  }
+};
 
 function App() {
   const [showModal, setShowModal] = useState(false);
@@ -207,6 +220,26 @@ function App() {
                 <Input type="text" placeholder="Username" />
               </InputGroup>
             </Stack>
+          </section>
+          {/* New Login Form Section */}
+          <section>
+            <Title level={2} className="mb-3">Login Form</Title>
+            <Card className="col-md-6 mx-auto p-4">
+              <LoginForm
+                onSubmit={handleLoginSubmit}
+                title="Admin Login (Mock)"
+                subtitle="Enter your credentials to access the admin panel."
+                errorMessage="Invalid username or password. Please try again."
+              />
+            </Card>
+            <Card className="col-md-6 mx-auto p-4 mt-4">
+              <LoginForm
+                onSubmit={handleLoginSubmit}
+                title="Applicant Login (Mock)"
+                subtitle="Enter your ID and password to start the interview."
+                loadingText="Verifying credentials..."
+              />
+            </Card>
           </section>
           <section>
             <Title level={2} className="mb-3">Checkboxes &amp; Radios (Raw)</Title>
