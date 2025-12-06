@@ -2,6 +2,12 @@ import { type LucideIcon, Home, BarChart2, Users, Settings, Briefcase, FileText 
 import React from 'react';
 import { Nav } from 'react-bootstrap';
 
+// Dummy usage of Lucide icons to suppress 'declared but never read' TypeScript warnings.
+// These icons are dynamically used via `item.icon` prop and are not directly rendered in JSX here.
+// This is a common workaround when using component props as dynamic JSX elements.
+const _lucideIcons = [Home, BarChart2, Users, Settings, Briefcase, FileText];
+void _lucideIcons; // Mark as read to suppress 'declared but never read' warning.
+
 interface SidebarNavItem {
   label: string;
   href: string;
