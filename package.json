@@ -9,6 +9,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "backend": "npm run dev -w backend",
+    "frontend": "npm run dev -w frontend",
     "dev": "npm-run-all --parallel backend frontend"
   },
   "keywords": [],
