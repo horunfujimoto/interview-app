@@ -1,7 +1,7 @@
 import { Badge, Button, Checkbox, Input, Message, Select, Title } from '@/atoms';
-import { Card, FormField, Modal } from '@/molecules';
-import { Alert, Container, Form, Stack } from 'react-bootstrap';
-import { ArrowRight, CheckCircle, Save } from 'lucide-react';
+import { Breadcrumb, Card, FormField, InputGroup, Modal, Pagination, Table } from '@/molecules';
+import { Alert, Container, Form, Stack, InputGroup as BootstrapInputGroup } from 'react-bootstrap';
+import { ArrowRight, CheckCircle, Save, Mail, Lock } from 'lucide-react';
 import { useState } from 'react';
 
 const selectOptions = [
@@ -10,8 +10,22 @@ const selectOptions = [
   { value: '3', label: 'Option 3' },
 ];
 
+const tableItems = [
+    { id: 1, firstName: 'Mark', lastName: 'Otto', handle: '@mdo' },
+    { id: 2, firstName: 'Jacob', lastName: 'Thornton', handle: '@fat' },
+    { id: 3, firstName: 'Larry the Bird', lastName: '', handle: '@twitter' },
+];
+
 function App() {
   const [showModal, setShowModal] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false); // New state for button loading
+
+  const handleLoadingButtonClick = () => {
+    setIsButtonLoading(true);
+    setTimeout(() => {
+      setIsButtonLoading(false);
+    }, 2000); // Simulate a 2-second loading time
+  };
 
   return (
     <Container className="p-4">
@@ -20,6 +34,11 @@ function App() {
         <p>This page is for testing the common components.</p>
       </header>
       <main>
+        <Breadcrumb>
+          <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+          <Breadcrumb.Item href="#">Library</Breadcrumb.Item>
+          <Breadcrumb.Item active>Data</Breadcrumb.Item>
+        </Breadcrumb>
         <Stack gap={4}>
           <section>
             <Title level={2} className="mb-3">Messages</Title>
@@ -64,6 +83,15 @@ function App() {
               <Button variant="warning" icon={Save} iconPosition="right">Warning</Button>
               <Button variant="danger" disabled>Danger Disabled</Button>
               <Button variant="link" icon={ArrowRight} iconPosition="right">Link Button</Button>
+              {/* New loading button */}
+              <Button
+                variant="primary"
+                loading={isButtonLoading}
+                loadingText="Submitting..."
+                onClick={handleLoadingButtonClick}
+              >
+                Submit Form
+              </Button>
             </Stack>
           </section>
           <section>
@@ -90,6 +118,46 @@ function App() {
                 </Card.Body>
               </Card>
             </Stack>
+          </section>
+          <section>
+            <Title level={2} className="mb-3">Tables</Title>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Username</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableItems.map(item => (
+                  <tr key={item.id}>
+                    <td>{item.id}</td>
+                    <td>{item.firstName}</td>
+                    <td>{item.lastName}</td>
+                    <td>{item.handle}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            <Pagination className="justify-content-center mt-3">
+              <Pagination.First />
+              <Pagination.Prev />
+              <Pagination.Item>{1}</Pagination.Item>
+              <Pagination.Ellipsis />
+
+              <Pagination.Item>{10}</Pagination.Item>
+              <Pagination.Item>{11}</Pagination.Item>
+              <Pagination.Item active>{12}</Pagination.Item>
+              <Pagination.Item>{13}</Pagination.Item>
+              <Pagination.Item disabled>{14}</Pagination.Item>
+
+              <Pagination.Ellipsis />
+              <Pagination.Item>{20}</Pagination.Item>
+              <Pagination.Next />
+              <Pagination.Last />
+            </Pagination>
           </section>
           <section>
             <Title level={2} className="mb-3">Form Fields</Title>
@@ -125,6 +193,19 @@ function App() {
                 <Checkbox id="form-check-1" label="Standard checkbox" />
                 <Checkbox id="form-check-2" label="Checked checkbox" defaultChecked />
               </Form.Group>
+            </Stack>
+          </section>
+          {/* New Input Group Section */}
+          <section>
+            <Title level={2} className="mb-3">Input Groups</Title>
+            <Stack gap={3} className="col-md-5 mx-auto">
+              <InputGroup icon={Mail} inputProps={{ type: 'email', placeholder: 'Email' }} />
+              <InputGroup icon={Lock} inputProps={{ type: 'password', placeholder: 'Password' }} />
+              <InputGroup icon={ArrowRight} iconPosition="right" inputProps={{ type: 'text', placeholder: 'Search' }} />
+              <InputGroup>
+                <BootstrapInputGroup.Text>@</BootstrapInputGroup.Text>
+                <Input type="text" placeholder="Username" />
+              </InputGroup>
             </Stack>
           </section>
           <section>
