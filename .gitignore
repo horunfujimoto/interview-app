@@ -1,0 +1,27 @@
+# Node modules
+**/node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor settings (keep shared settings)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Prisma (generated files)
+generated/prisma/
