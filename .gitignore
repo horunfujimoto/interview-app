@@ -25,3 +25,9 @@ Thumbs.db
 
 # Prisma (generated files)
 generated/prisma/
+
+other
+ui
+docs
+readme_for_claudecode.md
+coding_rule.md
