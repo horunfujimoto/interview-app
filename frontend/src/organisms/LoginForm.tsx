@@ -10,6 +10,7 @@ interface LoginFormProps {
   subtitle?: string;
   errorMessage?: string;
   loadingText?: string;
+  loginButtonText?: string; // New prop
 }
 
 /**
@@ -22,6 +23,7 @@ export const LoginForm = ({
   subtitle = 'IDとパスワードを入力してください',
   errorMessage: propErrorMessage,
   loadingText = '認証中...',
+  loginButtonText = 'ログイン', // Default value for new prop
 }: LoginFormProps) => {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -92,7 +94,7 @@ export const LoginForm = ({
         loadingText={loadingText}
         icon={Mail} // Using mail icon as a default login icon
       >
-        {title}
+        {loginButtonText} {/* Use loginButtonText here */}
       </Button>
     </Form>
   );

@@ -8,8 +8,9 @@ type InputGroupProps<C extends React.ElementType = 'input'> = BootstrapInputGrou
   icon?: LucideIcon;
   iconPosition?: 'left' | 'right';
   // Allow passing props to the internal Input component
-  inputProps?: Omit<React.ComponentPropsWithoutRef<C>, 'as' | 'className'>;
+  inputProps?: Omit<React.ComponentPropsWithoutRef<C>, 'as' | 'className' | 'isInvalid'> & { isInvalid?: boolean }; // Add isInvalid to inputProps
   as?: C; // The actual component to render inside the input group
+  isInvalid?: boolean; // InputGroup itself accepts isInvalid
 };
 
 /**
@@ -20,23 +21,27 @@ export const InputGroup = <C extends React.ElementType = 'input'>({
   icon: Icon,
   iconPosition = 'left',
   className,
-  children, // InputGroup can wrap anything, but here we expect an Input
+  children,
   as,
   inputProps,
-  ...props
+  isInvalid, // Destructure isInvalid here
+  ...restInputGroupProps // Rest of the props for BootstrapInputGroup
 }: InputGroupProps<C>) => {
   const inputGroupClasses = classNames(className);
 
   const InputComponent = as || Input; // Default to our Input atom
 
+  // Merge isInvalid from InputGroup props into inputProps for InputComponent
+  const finalInputProps = { ...inputProps, isInvalid: isInvalid };
+
   return (
-    <BootstrapInputGroup className={inputGroupClasses} {...props}>
+    <BootstrapInputGroup className={inputGroupClasses} {...restInputGroupProps}>
       {Icon && iconPosition === 'left' && (
         <BootstrapInputGroup.Text>
           <Icon size={18} />
         </BootstrapInputGroup.Text>
       )}
-      {children ? children : <InputComponent as={as} {...inputProps} />}
+      {children ? children : <InputComponent as={as} {...finalInputProps} />}
       {Icon && iconPosition === 'right' && (
         <BootstrapInputGroup.Text>
           <Icon size={18} />
