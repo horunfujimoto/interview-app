@@ -5,3 +5,5 @@ export * from './Table';
 export * from './Pagination';
 export * from './Breadcrumb';
 export * from './InputGroup';
+export * from './CameraPreview';
+export * from './MicrophoneLevelIndicator';
