@@ -13,3 +13,7 @@ app.get("/", (req, res) => {
 app.listen(3001, () => {
   console.log("Backend running on http://localhost:3001");
 });
+
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Hello from backend!" });
+});
