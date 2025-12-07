@@ -1,7 +1,5 @@
-import { Button } from '@/atoms';
 import { type LucideIcon, LogOut, User } from 'lucide-react';
-import React from 'react';
-import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
+import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap'; // Reactを削除
 
 interface HeaderProps {
   appName?: string;

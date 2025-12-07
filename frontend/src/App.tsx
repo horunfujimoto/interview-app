@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ApplicantLoginPage, ConnectionConfirmationPage, ComponentTestPage } from '@/pages';
-import React from 'react'; // React is needed for JSX (even if not explicitly used)
+import { ApplicantLoginPage, ConnectionConfirmationPage, ComponentTestPage, InterviewPage } from '@/pages'; // Add InterviewPage
+// import React from 'react'; // React is needed for JSX (even if not explicitly used) - Removed
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
 
 function App() {
   const handleStartInterview = () => {
@@ -20,6 +22,8 @@ function App() {
           path="/applicant/confirmation"
           element={<ConnectionConfirmationPage onStartInterview={handleStartInterview} />}
         />
+        {/* AI面接実施中画面 */}
+        <Route path="/applicant/interview" element={<InterviewPage />} />
 
         {/* コンポーネントテスト用ページ */}
         <Route path="/components" element={<ComponentTestPage />} />
@@ -27,6 +31,7 @@ function App() {
         {/* 404 Not Found ページ (オプション) */}
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </BrowserRouter>
   );
 }

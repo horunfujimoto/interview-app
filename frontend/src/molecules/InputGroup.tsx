@@ -2,7 +2,7 @@ import { InputGroup as BootstrapInputGroup, type InputGroupProps as BootstrapInp
 import classNames from 'classnames';
 import { type LucideIcon } from 'lucide-react';
 import { Input } from '@/atoms';
-import type React from 'react';
+import type React from 'react'; // Keep React import for React.ElementType
 
 type InputGroupProps<C extends React.ElementType = 'input'> = BootstrapInputGroupProps & {
   icon?: LucideIcon;
@@ -29,7 +29,7 @@ export const InputGroup = <C extends React.ElementType = 'input'>({
 }: InputGroupProps<C>) => {
   const inputGroupClasses = classNames(className);
 
-  const InputComponent = as || Input; // Default to our Input atom
+  const InputComponent: React.ElementType = as || Input; // Explicitly type as React.ElementType
 
   // Merge isInvalid from InputGroup props into inputProps for InputComponent
   const finalInputProps = { ...inputProps, isInvalid: isInvalid };
@@ -41,7 +41,7 @@ export const InputGroup = <C extends React.ElementType = 'input'>({
           <Icon size={18} />
         </BootstrapInputGroup.Text>
       )}
-      {children ? children : <InputComponent as={as} {...finalInputProps} />}
+      {children ? children : <InputComponent {...finalInputProps} as={as} />}
       {Icon && iconPosition === 'right' && (
         <BootstrapInputGroup.Text>
           <Icon size={18} />

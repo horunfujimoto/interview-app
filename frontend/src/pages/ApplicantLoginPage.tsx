@@ -2,17 +2,12 @@ import { Title } from '@/atoms';
 import { Card } from '@/molecules';
 import { LoginForm } from '@/organisms';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Video, ShieldCheck } from 'lucide-react'; // Only Video and ShieldCheck are used directly
-
-interface ApplicantLoginPageProps {
-  // Props specific to the applicant login page, if any
-}
+import { Video, ShieldCheck } from 'lucide-react';
 
 /**
  * Applicant Login Page Organism
- * @param {ApplicantLoginPageProps} props - The props for the component.
  */
-export const ApplicantLoginPage = ({}: ApplicantLoginPageProps) => {
+export const ApplicantLoginPage = () => {
   const handleLoginSubmit = async (loginId: string, password: string): Promise<boolean> => {
     console.log('Applicant login attempt:', { loginId, password });
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
