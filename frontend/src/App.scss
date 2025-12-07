@@ -1,0 +1,116 @@
+/* Base styles from App.css */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Custom styles for InterviewPage */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #1f2937; /* 濃いグレーの背景 (Gray 800) */
+}
+
+/* 青とグレーをベースにしたカラースキーム */
+.primary-blue {
+  background-color: #3b82f6; /* 青 (Blue 500) */
+}
+.primary-blue-hover:hover {
+  background-color: #2563eb; /* 濃い青 (Blue 600) */
+}
+.text-primary-blue {
+  color: #3b82f6;
+}
+
+/* 画面全体のコンテナ */
+.interview-grid {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* ヘッダー、メイン、フッター */
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ビデオコンテナのアスペクト比維持 */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 アスペクト比 */
+  background-color: #000;
+  border-radius: 0.75rem; /* rounded-xl */
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.video-wrapper video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* アバターエリアのカスタムスタイル */
+.ai-avatar-box {
+  background: linear-gradient(135deg, #2b3b55 0%, #1f2937 100%); /* 暗いグラデーション */
+  border: 1px solid #4b5563; /* 濃いグレーの境界線 */
+}
+.avatar-icon {
+  font-size: 80px; /* ウサギの絵文字を大きく表示 */
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); /* 青い光を当てる */
+}
+.prompt-text {
+  min-height: 100px;
+}
+
+/* mic-status-overlay のギャップ */
+.mic-status-overlay {
+  gap: 0.25rem; /* space-x-1 */
+}
+
+/* モバイルレイアウト調整 */
+@media (max-width: 768px) {
+  .main-content-area {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+  }
+  .video-wrapper {
+      padding-top: 50%; /* モバイルでは少し縦長に */
+  }
+}

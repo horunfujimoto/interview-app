@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import type { HTMLAttributes, ReactNode } from 'react';
+import type React from 'react'; // Explicitly import React for React.ElementType
 
 type TitleProps = {
   level: 1 | 2 | 3 | 4 | 5 | 6;
@@ -13,7 +14,7 @@ type TitleProps = {
  * @returns {JSX.Element}
  */
 export const Title = ({ level, children, className, ...props }: TitleProps) => {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag: React.ElementType = `h${level}`; // Explicitly type as React.ElementType
   const titleClasses = classNames(
     'fw-bold', // Bootstrap class for bold font
     className

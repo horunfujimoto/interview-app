@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState } from 'react'; // useCallbackを削除
 import { Card, Container, Row, Col, Form as BootstrapForm } from 'react-bootstrap';
 import { Video, FileText, RefreshCcw, PlayCircle } from 'lucide-react';
 import { Title, Button, Checkbox } from '@/atoms';
 import { CameraPreview, MicrophoneLevelIndicator } from '@/molecules';
+import { useMediaStream } from '@/hooks'; // useMediaStreamをインポート
 import classNames from 'classnames';
 
 interface ConnectionConfirmationPageProps {
@@ -10,53 +11,24 @@ interface ConnectionConfirmationPageProps {
 }
 
 export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfirmationPageProps) => {
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
-  const [cameraError, setCameraError] = useState(false);
-  const [micError, setMicError] = useState(false); // New state for mic specific errors
   const [consentChecked, setConsentChecked] = useState(false);
-  const isMounted = useRef(true); // To prevent state updates on unmounted component
 
-  const initializeMedia = useCallback(async () => {
-    if (!isMounted.current) return;
+  // useMediaStreamフックを使用
+  const { stream, isMicActive, error: mediaAccessError, getMediaStream } = useMediaStream();
 
-    setCameraError(false);
-    setMicError(false); // Reset mic error
-    // mediaStream stop is handled in useEffect cleanup
-    setMediaStream(null); // Clear previous stream
+  // CameraPreviewとMicrophoneLevelIndicatorに渡すエラー状態を計算
+  const cameraError = !!mediaAccessError; // メディアアクセスエラーがあればカメラエラーとする
+  const micError = isMicActive === null || !!mediaAccessError; // マイクがnullまたはメディアアクセスエラーがあればマイクエラーとする
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (isMounted.current) {
-        setMediaStream(stream);
-      }
-    } catch (err) {
-      console.error('メディアアクセスエラー:', err);
-      if (isMounted.current) {
-        setCameraError(true);
-        // Determine if it's a specific mic error or general error
-        // For now, if there's any media access error, assume mic is also affected
-        setMicError(true);
-      }
-    }
-  }, []); // Empty dependency array, as this function doesn't depend on external mutable state
+  // TODO: `primary-blue-text`をCSS変数またはBootstrapテーマで定義するか、適切なTailwind/Bootstrapクラスに置き換える
+  const primaryBlueText = "text-primary-blue"; // 仮のクラス名
 
   useEffect(() => {
-    isMounted.current = true;
-    initializeMedia();
+    // `useMediaStream`フックが自動的にメディアストリームの取得を試みるため、ここでの明示的な呼び出しは不要
+    // 必要であれば、`getMediaStream()`を呼んで再試行をトリガーできる
+  }, []);
 
-    return () => {
-      isMounted.current = false;
-      // Stop all tracks when component unmounts
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [initializeMedia]); // Re-run if initializeMedia changes
-
-  const isReadyToStart = mediaStream !== null && !cameraError && !micError && consentChecked;
-
-  // Placeholder for primary-blue-text class
-  const primaryBlueText = "text-primary-blue-text"; // Assuming this is defined in global CSS or will be replaced
+  const isReadyToStart = stream !== null && !cameraError && !micError && consentChecked;
 
   return (
     <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
@@ -64,7 +36,7 @@ export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfi
         <Row className="g-0">
           <Col md={12} className="p-4">
             <div className="d-flex align-items-center space-x-3 mb-4 border-bottom pb-3 border-gray-200">
-              <span className={classNames("fs-1", primaryBlueText)} role="img" aria-label="Rabbit Avatar">🐇</span> {/* Tailwind font-size-50px to fs-1 */}
+              <span className={classNames("fs-1", primaryBlueText)} role="img" aria-label="Rabbit Avatar">🐇</span>
               <Title level={1} className="text-gray-800 flex-grow-1">面接開始前の接続確認と同意</Title>
             </div>
 
@@ -77,13 +49,14 @@ export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfi
                 </Title>
 
                 {/* Candidate Video Area */}
-                <CameraPreview stream={mediaStream} hasError={cameraError} onRetry={initializeMedia} className="mb-4" />
+                {/* hasErrorとonRetryはuseMediaStreamのerrorとgetMediaStreamにマップ */}
+                <CameraPreview stream={stream} hasError={cameraError} onRetry={getMediaStream} className="mb-4" />
 
                 {/* Mic Level Display */}
-                <MicrophoneLevelIndicator stream={mediaStream} micError={micError} className="mb-4" />
+                <MicrophoneLevelIndicator stream={stream} micError={micError} className="mb-4" />
 
                 {/* Test Connection Button */}
-                <Button variant="primary" className="w-100" onClick={initializeMedia}>
+                <Button variant="primary" className="w-100" onClick={getMediaStream}> {/* getMediaStreamを再試行ハンドラとして利用 */}
                   <RefreshCcw size={20} className="me-2" />
                   <span>接続をテスト / デバイスを変更</span>
                 </Button>
@@ -99,7 +72,7 @@ export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfi
                 {/* Important Notice */}
                 <div className="bg-blue-100 border-start border-4 border-primary-blue text-gray-700 p-3 rounded-3 mb-4">
                   <h3 className="fw-bold mb-2 fs-6">【重要】面接に関するお知らせ</h3>
-                  <ul className="list-unstyled space-y-2 text-sm ps-3"> {/* list-disc list-inside space-y-2 */}
+                  <ul className="list-unstyled space-y-2 text-sm ps-3">
                     <li><small>本面接は、選考およびサービス向上の目的で、**映像と音声を全て録画・録音** いたします。</small></li>
                     <li><small>録画データは、面接終了後、自動的にサーバーにアップロードされ、AIによる採点・分析に使用されます。</small></li>
                     <li><small>録画データは、**採用担当者のみ** が閲覧できる安全な環境で保管されます。</small></li>

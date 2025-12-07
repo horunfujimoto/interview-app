@@ -18,15 +18,16 @@ export const CameraPreview = ({ stream, hasError, onRetry, className }: CameraPr
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(err => console.error("Error playing video:", err));
+    const currentVideoRef = videoRef.current; // Capture the current ref value
+    if (currentVideoRef && stream) {
+      currentVideoRef.srcObject = stream;
+      currentVideoRef.play().catch(err => console.error("Error playing video:", err));
     }
     // Cleanup function: stop video tracks when component unmounts or stream changes
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
+      if (currentVideoRef && currentVideoRef.srcObject) {
+        (currentVideoRef.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+        currentVideoRef.srcObject = null;
       }
     };
   }, [stream]);
