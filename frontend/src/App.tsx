@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ApplicantLoginPage, ConnectionConfirmationPage, ComponentTestPage, InterviewPage } from '@/pages'; // Add InterviewPage
+import { ApplicantLoginPage, ConnectionConfirmationPage, ComponentTestPage, InterviewPage, FinishPage } from '@/pages'; // Add InterviewPage & FinishPage
 // import React from 'react'; // React is needed for JSX (even if not explicitly used) - Removed
 import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
@@ -24,6 +24,8 @@ function App() {
         />
         {/* AI面接実施中画面 */}
         <Route path="/applicant/interview" element={<InterviewPage />} />
+        {/* 面接終了画面 */}
+        <Route path="/applicant/finish" element={<FinishPage />} />
 
         {/* コンポーネントテスト用ページ */}
         <Route path="/components" element={<ComponentTestPage />} />
