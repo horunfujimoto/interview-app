@@ -8,6 +8,7 @@ const { rateLimit } = require("express-rate-limit");
 
 const authRouter = require("./src/routes/auth");
 const interviewsRouter = require("./src/routes/interviews");
+const adminRouter = require("./src/routes/admin");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 
 // 起動前チェック: 必須の環境変数がなければ即終了（設定漏れの早期発見）
@@ -45,6 +46,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/interviews", interviewsRouter);
+app.use("/api/admin", adminRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: "エンドポイントが見つかりません。" });
