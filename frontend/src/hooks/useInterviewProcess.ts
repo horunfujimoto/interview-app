@@ -1,67 +1,17 @@
-import { useState, useCallback, useMemo } from 'react';
-
-// モックデータと関数 (実際にはAPI呼び出しに置き換える)
-const MOCK_QUESTIONS = [
-  {
-    sequence: 1,
-    title: 'AI面接官からの質問',
-    text: 'あなたのこれまでのキャリアの中で、最も大きな困難は何でしたか？また、それをどのように乗り越えましたか？ 具体的な例を挙げて説明してください。',
-  },
-  {
-    sequence: 2,
-    title: 'AI面接官からの質問',
-    text: 'その困難を乗り越える過程で、チームメンバーとはどのように連携しましたか？（追質問）',
-  },
-  {
-    sequence: 3,
-    title: 'AI面接官からの質問',
-    text: '当社を志望された理由と、あなたが当社で成し遂げたいことを教えてください。',
-  },
-  {
-    sequence: 4,
-    title: 'AI面接官からの質問',
-    text: 'ご自身の強みと弱みを教えてください。また、それぞれの具体的なエピソードを交えて説明してください。',
-  },
-  {
-    sequence: 5,
-    title: 'AI面接官からの質問',
-    text: 'あなたはストレスを感じた時、どのように対処していますか？具体的な方法があれば教えてください。',
-  },
-  {
-    sequence: 6,
-    title: 'AI面接官からの質問',
-    text: 'もし当社の製品やサービスについて改善点があるとしたら、どのような点を提案しますか？',
-  },
-  {
-    sequence: 7,
-    title: 'AI面接官からの質問',
-    text: 'あなたはチームで働くことと、個人で働くことのどちらにやりがいを感じますか？理由も教えてください。',
-  },
-  {
-    sequence: 8,
-    title: 'AI面接官からの質問',
-    text: '10年後、あなたはどのような自分になっていたいですか？また、そのために何をしますか？',
-  },
-  {
-    sequence: 9,
-    title: 'AI面接官からの質問',
-    text: 'これまでの経験で、最も成功したプロジェクトと失敗したプロジェクトを教えてください。そこから何を学びましたか？',
-  },
-  {
-    sequence: 10,
-    title: 'AI面接官からの質問',
-    text: '最後に、AI面接官に何か質問はありますか？',
-  },
-];
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { api, type MeResponse, type NextQuestionResponse, type InterviewQuestion } from '../lib/api';
 
 interface UseInterviewProcess {
+  interviewId: string | null;
   currentQuestionSequence: number;
   totalQuestions: number;
   questionTitle: string;
   questionText: string;
+  timeLimitSec: number;
   isLoading: boolean;
   error: Error | null;
-  submitAnswerAndNext: () => Promise<void>;
+  isUnauthorized: boolean;
+  submitAnswerAndNext: (durationSec?: number) => Promise<void>;
   finishInterview: () => Promise<void>;
   hasInterviewFinished: boolean;
 }
@@ -69,74 +19,101 @@ interface UseInterviewProcess {
 /**
  * useInterviewProcess Custom Hook
  * 質問の進行、回答の送信、面接終了などのロジックを管理するカスタムフック。
- * モック化されたAPI呼び出しを含む。
- * @param {string} interviewId - 面接ID
- * @returns {UseInterviewProcess} currentQuestionSequence, totalQuestions, questionTitle, questionText, isLoading, error, submitAnswerAndNext, finishInterview, hasInterviewFinished
+ * 質問はサーバーから取得する（モード分岐はサーバー側に集約されている）。
  */
-export const useInterviewProcess = (interviewId: string): UseInterviewProcess => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0); // 0-indexed
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export const useInterviewProcess = (): UseInterviewProcess => {
+  const [interviewId, setInterviewId] = useState<string | null>(null);
+  const [question, setQuestion] = useState<InterviewQuestion | null>(null);
+  const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
   const [hasInterviewFinished, setHasInterviewFinished] = useState<boolean>(false);
+  const initialized = useRef(false);
 
-  const totalQuestions = MOCK_QUESTIONS.length;
-  const currentQuestion = MOCK_QUESTIONS[currentQuestionIndex];
+  const handleError = useCallback((err: unknown) => {
+    if (err instanceof Error && 'status' in err && (err as { status: number }).status === 401) {
+      setIsUnauthorized(true); // セッション切れ → ログイン画面へ誘導
+      return;
+    }
+    setError(err as Error);
+  }, []);
 
-  const questionTitle = useMemo(() => currentQuestion?.title || '', [currentQuestion]);
-  const questionText = useMemo(() => currentQuestion?.text || '', [currentQuestion]);
-  const currentQuestionSequence = useMemo(() => currentQuestion?.sequence || 0, [currentQuestion]);
+  const fetchNextQuestion = useCallback(async (): Promise<boolean> => {
+    const data = await api.get<NextQuestionResponse>('/api/interviews/me/questions/next');
+    setProgress(data.progress);
+    if (data.finished || !data.question) {
+      return true; // 全問終了
+    }
+    setQuestion(data.question);
+    return false;
+  }, []);
 
   const finishInterview = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: 実際のAPI呼び出しに置き換える
-      console.log(`[${interviewId}] 面接を終了します...`);
-      // MediaRecorderを停止し、録画データをアップロードするAPI (mock)
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 2秒の遅延をシミュレート
-
-      alert('面接を終了しました。録画データのアップロードが開始されます。(デモ)');
-      setHasInterviewFinished(true); // 面接終了フラグを立てる
-      // TODO: 完了画面へのリダイレクトなどの処理
+      await api.post('/api/interviews/me/finish');
+      setHasInterviewFinished(true);
     } catch (err) {
-      console.error('面接終了処理に失敗しました:', err);
-      setError(err as Error);
+      handleError(err);
     } finally {
       setIsLoading(false);
     }
-  }, [interviewId]);
+  }, [handleError]);
 
-  const submitAnswerAndNext = useCallback(async () => {
+  // 初期化: 面接情報と最初の質問を取得
+  useEffect(() => {
+    if (initialized.current) return; // StrictMode の二重実行を防ぐ
+    initialized.current = true;
+
+    (async () => {
+      try {
+        const { interview } = await api.get<MeResponse>('/api/interviews/me');
+        setInterviewId(interview.id);
+        const finished = await fetchNextQuestion();
+        if (finished) {
+          await finishInterview(); // リロード時に全問回答済みだった場合
+        }
+      } catch (err) {
+        handleError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [fetchNextQuestion, finishInterview, handleError]);
+
+  const submitAnswerAndNext = useCallback(async (durationSec?: number) => {
+    if (!question) return;
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: 実際のAPI呼び出しに置き換える
-      console.log(`[${interviewId}] Q${currentQuestionSequence} の回答を送信します...`);
-      // 例えば、回答データをサーバーに送信するAPI (mock)
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒の遅延をシミュレート
-
-      if (currentQuestionIndex < MOCK_QUESTIONS.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-        console.log('次の質問へ進みます。');
-      } else {
-        console.log('すべての質問が終了しました。');
-        await finishInterview(); // 最後の質問の場合、自動的に面接終了
+      await api.post('/api/interviews/me/answers', {
+        sequence: question.sequence,
+        durationSec: durationSec ?? null,
+        // TODO: Phase 4 で音声の文字起こし（transcript）を送信する
+      });
+      const finished = await fetchNextQuestion();
+      if (finished) {
+        await finishInterview();
       }
     } catch (err) {
-      console.error('回答送信または次の質問取得に失敗しました:', err);
-      setError(err as Error);
+      handleError(err);
     } finally {
       setIsLoading(false);
     }
-  }, [interviewId, currentQuestionSequence, currentQuestionIndex, finishInterview]);
+  }, [question, fetchNextQuestion, finishInterview, handleError]);
 
   return {
-    currentQuestionSequence,
-    totalQuestions,
-    questionTitle,
-    questionText,
+    interviewId,
+    currentQuestionSequence: question?.sequence ?? 0,
+    totalQuestions: progress.total,
+    questionTitle: 'AI面接官からの質問',
+    questionText: question?.text ?? '',
+    timeLimitSec: question?.timeLimitSec ?? 180,
     isLoading,
     error,
+    isUnauthorized,
     submitAnswerAndNext,
     finishInterview,
     hasInterviewFinished,

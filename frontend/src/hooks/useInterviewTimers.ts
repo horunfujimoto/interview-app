@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const INITIAL_RESPONSE_TIME = 45; // 秒
+const INITIAL_RESPONSE_TIME = 45; // 秒（制限時間未指定時のデフォルト）
 
 interface UseInterviewTimers {
   totalTime: number;
   responseRemainingTime: number;
   startTimers: () => void;
-  resetResponseTimer: () => void;
+  resetResponseTimer: (timeLimitSec?: number) => void;
 }
 
 /**
@@ -45,8 +45,8 @@ export const useInterviewTimers = (): UseInterviewTimers => {
     }, 1000);
   }, []);
 
-  const resetResponseTimer = useCallback(() => {
-    setResponseRemainingTime(INITIAL_RESPONSE_TIME);
+  const resetResponseTimer = useCallback((timeLimitSec?: number) => {
+    setResponseRemainingTime(timeLimitSec ?? INITIAL_RESPONSE_TIME);
     startResponseTimer(); // リセット後にタイマーを再開
   }, [startResponseTimer]);
 
