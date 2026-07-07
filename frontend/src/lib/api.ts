@@ -38,6 +38,19 @@ export const api = {
       method: 'POST',
       body: data !== undefined ? JSON.stringify(data) : undefined,
     }),
+  /** multipart/form-data 送信（Content-Type はブラウザが boundary 付きで自動設定する） */
+  postForm: async <T>(path: string, formData: FormData): Promise<T> => {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new ApiError(res.status, body?.error ?? 'サーバーエラーが発生しました。');
+    }
+    return body as T;
+  },
 };
 
 // ===== 型定義 =====
@@ -53,5 +66,21 @@ export interface InterviewSummary {
 }
 
 export interface LoginResponse {
+  interview: InterviewSummary;
+}
+
+export interface InterviewQuestion {
+  sequence: number;
+  text: string;
+  timeLimitSec: number;
+}
+
+export interface NextQuestionResponse {
+  finished: boolean;
+  question: InterviewQuestion | null;
+  progress: { current: number; total: number };
+}
+
+export interface MeResponse {
   interview: InterviewSummary;
 }

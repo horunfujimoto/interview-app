@@ -1,17 +1,35 @@
-import React, { useEffect, useState } from 'react'; // useCallbackを削除
+import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Container, Row, Col, Form as BootstrapForm } from 'react-bootstrap';
 import { Video, FileText, RefreshCcw, PlayCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Title, Button, Checkbox } from '@/atoms';
 import { CameraPreview, MicrophoneLevelIndicator } from '@/molecules';
 import { useMediaStream } from '@/hooks'; // useMediaStreamをインポート
+import { api, ApiError } from '../lib/api';
 import classNames from 'classnames';
 
-interface ConnectionConfirmationPageProps {
-  onStartInterview: () => void; // Callback when interview starts
-}
-
-export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfirmationPageProps) => {
+export const ConnectionConfirmationPage = () => {
+  const navigate = useNavigate();
   const [consentChecked, setConsentChecked] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+
+  // 面接開始: サーバーの状態を IN_PROGRESS にしてから面接画面へ遷移する
+  const onStartInterview = useCallback(async () => {
+    setIsStarting(true);
+    try {
+      await api.post('/api/interviews/me/start');
+      navigate('/applicant/interview');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        toast.error('セッションの有効期限が切れました。再度ログインしてください。');
+        navigate('/applicant/login');
+      } else {
+        toast.error(err instanceof ApiError ? err.message : '面接を開始できませんでした。');
+      }
+      setIsStarting(false);
+    }
+  }, [navigate]);
 
   // useMediaStreamフックを使用
   const { stream, isMicActive, error: mediaAccessError, getMediaStream } = useMediaStream();
@@ -28,7 +46,7 @@ export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfi
     // 必要であれば、`getMediaStream()`を呼んで再試行をトリガーできる
   }, []);
 
-  const isReadyToStart = stream !== null && !cameraError && !micError && consentChecked;
+  const isReadyToStart = stream !== null && !cameraError && !micError && consentChecked && !isStarting;
 
   return (
     <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
@@ -99,7 +117,7 @@ export const ConnectionConfirmationPage = ({ onStartInterview }: ConnectionConfi
                   disabled={!isReadyToStart}
                 >
                   <PlayCircle size={24} className="me-2" />
-                  <span>面接を開始する</span>
+                  <span>{isStarting ? '面接を開始しています...' : '面接を開始する'}</span>
                 </Button>
                 {isReadyToStart && (
                   <p id="readyMessage" className="text-center text-sm text-success mt-2">

@@ -5,11 +5,6 @@ import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
 
 function App() {
-  const handleStartInterview = () => {
-    alert('面接が開始されます！（モック）');
-    // 実際には面接画面に遷移するなどの処理
-  };
-
   return (
     <BrowserRouter>
       <Routes>
@@ -18,10 +13,7 @@ function App() {
 
         {/* 応募者向けページ */}
         <Route path="/applicant/login" element={<ApplicantLoginPage />} />
-        <Route
-          path="/applicant/confirmation"
-          element={<ConnectionConfirmationPage onStartInterview={handleStartInterview} />}
-        />
+        <Route path="/applicant/confirmation" element={<ConnectionConfirmationPage />} />
         {/* AI面接実施中画面 */}
         <Route path="/applicant/interview" element={<InterviewPage />} />
         {/* 面接終了画面 */}
