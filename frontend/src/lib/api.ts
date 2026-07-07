@@ -84,3 +84,79 @@ export interface NextQuestionResponse {
 export interface MeResponse {
   interview: InterviewSummary;
 }
+
+// ===== 管理者向け =====
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'OWNER' | 'RECRUITER';
+}
+
+export interface AdminLoginResponse {
+  /** パスワード認証後の次ステップ（setup_required: 初回 / code_required: 2回目以降） */
+  mfa: 'setup_required' | 'code_required';
+}
+
+export interface AdminMfaVerifyResponse {
+  admin: AdminUser;
+}
+
+export interface QuestionSetSummary {
+  id: number;
+  name: string;
+  description: string | null;
+  questionCount: number;
+  interviewCount: number;
+  createdAt: string;
+}
+
+export interface AdminInterviewRow {
+  id: string;
+  candidateName: string;
+  candidateEmail: string | null;
+  loginId: string;
+  mode: 'FIXED' | 'AI' | 'HYBRID';
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED' | 'CANCELLED';
+  questionSetName: string | null;
+  answerCount: number;
+  hasRecording: boolean;
+  expiresAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  createdAt: string;
+}
+
+export interface IssuedCredentials {
+  loginId: string;
+  password: string;
+}
+
+export interface CreateInterviewResponse {
+  interview: { id: string; candidateName: string; mode: string; expiresAt: string };
+  credentials: IssuedCredentials;
+}
+
+export interface AdminInterviewDetail {
+  id: string;
+  candidateName: string;
+  candidateEmail: string | null;
+  loginId: string;
+  mode: 'FIXED' | 'AI' | 'HYBRID';
+  status: string;
+  questionSetName: string | null;
+  expiresAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  createdBy: string;
+  answers: {
+    sequence: number;
+    questionText: string;
+    transcript: string | null;
+    durationSec: number | null;
+    answeredAt: string;
+  }[];
+  recording: { mimeType: string; sizeBytes: string | null; uploadedAt: string } | null;
+  aiSummary: unknown | null;
+}
