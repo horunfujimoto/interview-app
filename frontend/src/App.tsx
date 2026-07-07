@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ApplicantLoginPage, ConnectionConfirmationPage, ComponentTestPage, InterviewPage, FinishPage } from '@/pages'; // Add InterviewPage & FinishPage
 import {
   AdminLoginPage,
+  AdminMfaPage,
   AdminLayout,
   AdminInterviewsPage,
   AdminInterviewNewPage,
@@ -29,6 +30,7 @@ function App() {
 
         {/* 管理者向けページ */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/mfa" element={<AdminMfaPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/interviews" replace />} />
           <Route path="interviews" element={<AdminInterviewsPage />} />

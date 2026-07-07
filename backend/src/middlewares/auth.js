@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const COOKIE_NAME = "iv_token"; // 応募者用
 const ADMIN_COOKIE_NAME = "iv_admin_token"; // 管理者用（応募者と別Cookieにして相互干渉を防ぐ）
+const MFA_COOKIE_NAME = "iv_admin_mfa"; // 管理者のMFA待ち仮トークン用
 
 /** 認証Cookieの共通オプション */
 const cookieOptions = {
@@ -53,4 +54,4 @@ function requireAdmin(req, res, next) {
   }
 }
 
-module.exports = { requireCandidate, requireAdmin, COOKIE_NAME, ADMIN_COOKIE_NAME, cookieOptions };
+module.exports = { requireCandidate, requireAdmin, COOKIE_NAME, ADMIN_COOKIE_NAME, MFA_COOKIE_NAME, cookieOptions };

@@ -13,6 +13,8 @@ model AdminUser {
   passwordHash String // bcrypt ハッシュ。平文は保存しない
   name         String
   role         AdminRole   @default(RECRUITER)
+  totpSecret   String? // TOTP秘密鍵（base32）。セットアップ完了までは仮保存
+  totpEnabled  Boolean     @default(false) // 初回ログイン後のセットアップ完了で true
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   interviews   Interview[]

@@ -1,4 +1,5 @@
 export * from './AdminLoginPage';
+export * from './AdminMfaPage';
 export * from './AdminLayout';
 export * from './AdminInterviewsPage';
 export * from './AdminInterviewNewPage';
