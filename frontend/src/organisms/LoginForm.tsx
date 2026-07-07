@@ -11,6 +11,8 @@ interface LoginFormProps {
   errorMessage?: string;
   loadingText?: string;
   loginButtonText?: string; // New prop
+  idLabel?: string;
+  idPlaceholder?: string;
 }
 
 /**
@@ -24,6 +26,8 @@ export const LoginForm = ({
   errorMessage: propErrorMessage,
   loadingText = '認証中...',
   loginButtonText = 'ログイン', // Default value for new prop
+  idLabel = 'ログインID',
+  idPlaceholder = '',
 }: LoginFormProps) => {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -60,12 +64,12 @@ export const LoginForm = ({
       <Stack gap={3} className="mb-4">
         <FormField
           controlId="loginId"
-          label="メールアドレス または ログインID"
+          label={idLabel}
           as={InputGroup}
           icon={Mail}
           inputProps={{
             type: 'text',
-            placeholder: 'admin@example.com または candidate-0001',
+            placeholder: idPlaceholder,
             value: loginId,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => setLoginId(e.target.value),
             required: true,

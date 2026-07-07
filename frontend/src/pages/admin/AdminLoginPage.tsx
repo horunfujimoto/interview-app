@@ -1,3 +1,4 @@
+import { Logo } from '@/atoms';
 import { Card } from '@/molecules';
 import { LoginForm } from '@/organisms';
 import { Container } from 'react-bootstrap';
@@ -37,12 +38,8 @@ export const AdminLoginPage = () => {
   return (
     <Container fluid className="page-centered">
       <div style={{ maxWidth: '420px', width: '100%' }}>
-        <div className="brand-lockup justify-content-center mb-4">
-          <span className="brand-mark" role="img" aria-label="AI一次面接">🐇</span>
-          <span>
-            <span className="brand-name">AI一次面接</span>
-            <span className="brand-sub">RECRUITER CONSOLE</span>
-          </span>
+        <div className="d-flex justify-content-center mb-4">
+          <Logo sub="RECRUITER CONSOLE" />
         </div>
         <Card className="p-4">
           <LoginForm
@@ -51,6 +48,8 @@ export const AdminLoginPage = () => {
             subtitle="採用担当者向けの管理画面です"
             errorMessage="メールアドレスまたはパスワードが正しくありません。"
             loadingText="認証中..."
+            idLabel="メールアドレス"
+            idPlaceholder="you@example.com"
           />
         </Card>
       </div>

@@ -6,3 +6,4 @@ export * from './Label';
 export * from './Select';
 export * from './Checkbox';
 export * from './Message';
+export * from './Logo';

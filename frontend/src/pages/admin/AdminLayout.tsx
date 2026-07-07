@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, NavLink } from 'react-router-dom';
 import { Users, FilePlus, ListChecks, LogOut } from 'lucide-react';
 import { Nav } from 'react-bootstrap';
+import { Logo } from '@/atoms';
 import { api } from '../../lib/api';
 import { toast } from 'react-toastify';
 
@@ -25,12 +26,8 @@ export const AdminLayout = () => {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <div className="brand-lockup px-2">
-          <span className="brand-mark" role="img" aria-label="AI一次面接">🐇</span>
-          <span>
-            <span className="brand-name">AI一次面接</span>
-            <span className="brand-sub">RECRUITER CONSOLE</span>
-          </span>
+        <div className="px-2">
+          <Logo sub="RECRUITER CONSOLE" />
         </div>
 
         <div>

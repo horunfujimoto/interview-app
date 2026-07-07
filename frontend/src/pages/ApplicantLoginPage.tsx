@@ -1,4 +1,4 @@
-import { Title } from '@/atoms';
+import { Title, Logo } from '@/atoms';
 import { Card } from '@/molecules';
 import { LoginForm } from '@/organisms';
 import { Container, Row, Col } from 'react-bootstrap';
@@ -38,12 +38,14 @@ export const ApplicantLoginPage = () => {
     <Container fluid className="page-centered">
       <Card className="overflow-hidden" style={{ maxWidth: '880px', width: '100%' }}>
         <Row className="g-0">
-          {/* Left Side: Avatar and Promo Area (hidden on md and down) */}
-          <Col md={6} className="login-hero p-5 d-none d-md-flex flex-column justify-content-center align-items-center text-center">
-            <span className="login-hero-mark" role="img" aria-label="面接官のウサギ">🐇</span>
-            <Title level={2} className="mt-4 fw-bold">面接官がお待ちしています</Title>
+          {/* Left Side: Brand and Promo Area (hidden on md and down) */}
+          <Col md={6} className="login-hero p-5 d-none d-md-flex flex-column justify-content-center text-start">
+            <Logo tone="inverse" sub="AI一次面接" className="mb-4" />
+            <Title level={2} className="fw-bold" style={{ lineHeight: 1.4 }}>
+              あなたの言葉で、<br />あなたのペースで。
+            </Title>
             <p className="mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
-              IDとパスワードを入力して、面接を開始してください。
+              準備ができたら、IDとパスワードを入力して面接を開始してください。
             </p>
             <div className="mt-4 d-flex flex-column gap-2 align-items-start">
               <div className="hero-note">
@@ -59,8 +61,8 @@ export const ApplicantLoginPage = () => {
 
           {/* Right Side: Login Form */}
           <Col md={6} className="p-4 d-flex flex-column justify-content-center">
-            <div className="d-md-none text-center mb-4">
-              <span style={{ fontSize: '50px' }}>🐇</span>
+            <div className="d-md-none d-flex justify-content-center mb-4">
+              <Logo sub="AI一次面接" />
             </div>
             <Title level={1} className="text-center mb-1">応募者ログイン</Title>
             <p className="text-sm text-muted text-center mb-4">運営から発行されたIDとパスワードをご利用ください</p>
@@ -71,6 +73,8 @@ export const ApplicantLoginPage = () => {
               subtitle=""
               errorMessage="ログインIDまたはパスワードが正しくありません。"
               loadingText="認証中..."
+              idLabel="ログインID"
+              idPlaceholder="例: cand-1a2b3c4d"
             />
 
             <p className="text-xs text-muted text-center mt-3">
