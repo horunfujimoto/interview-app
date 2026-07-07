@@ -3,11 +3,150 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
-model User {
-  id       Int     @id @default(autoincrement())
-  loginId  String
-  password String
+// ===== 管理者（採用担当） =====
+model AdminUser {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  passwordHash String // bcrypt ハッシュ。平文は保存しない
+  name         String
+  role         AdminRole   @default(RECRUITER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  interviews   Interview[]
+}
+
+enum AdminRole {
+  OWNER // 全権限
+  RECRUITER // 面接作成・結果閲覧
+}
+
+// ===== 質問セット（テンプレート） =====
+model QuestionSet {
+  id          Int         @id @default(autoincrement())
+  name        String // 例: "エンジニア一次面接 v2"
+  description String?
+  isArchived  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  questions   Question[]
+  interviews  Interview[]
+}
+
+model Question {
+  id            Int         @id @default(autoincrement())
+  questionSetId Int
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id])
+  sequence      Int // 表示順
+  text          String
+  timeLimitSec  Int         @default(180) // 質問ごとの回答制限時間
+  aiFollowUp    Boolean     @default(false) // HYBRID時にAI追質問を許可するか
+  answers       Answer[]
+
+  @@unique([questionSetId, sequence])
+}
+
+// ===== 面接（1応募者1面接） =====
+model Interview {
+  id             String             @id @default(cuid()) // URL推測防止のため cuid
+  candidateName  String
+  candidateEmail String?
+  loginId        String             @unique // 発行するワンタイムID
+  passwordHash   String // 発行するワンタイムPW（ハッシュ）
+  mode           InterviewMode      @default(FIXED)
+  status         InterviewStatus    @default(SCHEDULED)
+  questionSetId  Int? // FIXED/HYBRID時に使用
+  questionSet    QuestionSet?       @relation(fields: [questionSetId], references: [id])
+  aiConfigId     Int? // AI/HYBRID時に使用
+  aiConfig       AiInterviewConfig? @relation(fields: [aiConfigId], references: [id])
+  expiresAt      DateTime // ログイン有効期限
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdById    Int
+  createdBy      AdminUser          @relation(fields: [createdById], references: [id])
+  createdAt      DateTime           @default(now())
+  answers        Answer[]
+  recording      Recording?
+  aiSummary      AiSummary?
+}
+
+enum InterviewMode {
+  FIXED // 用意された質問のみ
+  AI // Gemini が質問を自動生成・深掘り
+  HYBRID // 固定質問 + AI追質問
+}
+
+enum InterviewStatus {
+  SCHEDULED // 発行済み・未実施
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED // 期限切れ
+  CANCELLED
+}
+
+// ===== AI面接設定 =====
+model AiInterviewConfig {
+  id             Int         @id @default(autoincrement())
+  name           String // 例: "新卒エンジニア向け"
+  jobDescription String // 募集職種の説明（プロンプトに使用）
+  evaluationAxes Json // 評価軸: コミュ力/論理性/志望度 など
+  maxQuestions   Int         @default(10)
+  maxFollowUps   Int         @default(2) // 1質問あたりの深掘り上限
+  language       String      @default("ja")
+  interviews     Interview[]
+}
+
+// ===== 回答 =====
+model Answer {
+  id             Int       @id @default(autoincrement())
+  interviewId    String
+  interview      Interview @relation(fields: [interviewId], references: [id])
+  questionId     Int? // FIXED質問の場合のみ
+  question       Question? @relation(fields: [questionId], references: [id])
+  aiQuestionText String? // AI生成質問の場合、質問文をここに保存
+  sequence       Int // 面接内での通し番号
+  transcript     String? // 文字起こし（音声→テキスト）
+  durationSec    Int?
+  answeredAt     DateTime  @default(now())
+
+  @@unique([interviewId, sequence])
+}
+
+// ===== 録画 =====
+model Recording {
+  id          Int       @id @default(autoincrement())
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  storageKey  String // ファイルパス or S3キー（URLは保存しない）
+  mimeType    String    @default("video/webm")
+  sizeBytes   BigInt?
+  uploadedAt  DateTime  @default(now())
+}
+
+// ===== AI評価サマリー =====
+model AiSummary {
+  id          Int       @id @default(autoincrement())
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  summary     String // 面接全体の要約
+  scores      Json // 評価軸ごとのスコア
+  strengths   String?
+  concerns    String?
+  model       String // 使用モデル名（再現性のため）
+  createdAt   DateTime  @default(now())
+}
+
+// ===== 監査ログ =====
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  actorType String // "admin" | "candidate" | "system"
+  actorId   String
+  action    String // "login", "interview.start", "recording.download" など
+  detail    String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([actorType, actorId])
+  @@index([createdAt])
 }
