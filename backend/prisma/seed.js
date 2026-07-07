@@ -58,7 +58,7 @@ async function main() {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7); // 7日間有効
 
-  await prisma.interview.upsert({
+  const interview = await prisma.interview.upsert({
     where: { loginId: "candidate-0001" },
     update: { expiresAt }, // 再実行時は期限だけ延長
     create: {
@@ -73,6 +73,23 @@ async function main() {
       createdById: admin.id,
     },
   });
+
+  // 面接ごとの質問コピーがなければセットから作成する
+  const qCount = await prisma.interviewQuestion.count({ where: { interviewId: interview.id } });
+  if (qCount === 0) {
+    const setQuestions = await prisma.question.findMany({
+      where: { questionSetId: questionSet.id },
+      orderBy: { sequence: "asc" },
+    });
+    await prisma.interviewQuestion.createMany({
+      data: setQuestions.map((q) => ({
+        interviewId: interview.id,
+        sequence: q.sequence,
+        text: q.text,
+        timeLimitSec: q.timeLimitSec,
+      })),
+    });
+  }
 
   console.log("シード完了:");
   console.log("  管理者:        admin@example.com / Admin@12345");

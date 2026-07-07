@@ -38,6 +38,12 @@ export const api = {
       method: 'POST',
       body: data !== undefined ? JSON.stringify(data) : undefined,
     }),
+  put: <T>(path: string, data?: unknown) =>
+    request<T>(path, {
+      method: 'PUT',
+      body: data !== undefined ? JSON.stringify(data) : undefined,
+    }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   /** multipart/form-data 送信（Content-Type はブラウザが boundary 付きで自動設定する） */
   postForm: async <T>(path: string, formData: FormData): Promise<T> => {
     const res = await fetch(`${API_BASE}${path}`, {
@@ -138,6 +144,13 @@ export interface CreateInterviewResponse {
   credentials: IssuedCredentials;
 }
 
+export interface AdminInterviewQuestion {
+  id: number;
+  sequence: number;
+  text: string;
+  timeLimitSec: number;
+}
+
 export interface AdminInterviewDetail {
   id: string;
   candidateName: string;
@@ -150,6 +163,9 @@ export interface AdminInterviewDetail {
   startedAt: string | null;
   finishedAt: string | null;
   createdBy: string;
+  /** SCHEDULED（面接開始前）のときのみ true。質問の追加・編集・削除が可能 */
+  canEditQuestions: boolean;
+  questions: AdminInterviewQuestion[];
   answers: {
     sequence: number;
     questionText: string;

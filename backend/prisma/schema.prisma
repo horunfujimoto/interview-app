@@ -44,9 +44,22 @@ model Question {
   text          String
   timeLimitSec  Int         @default(180) // 質問ごとの回答制限時間
   aiFollowUp    Boolean     @default(false) // HYBRID時にAI追質問を許可するか
-  answers       Answer[]
 
   @@unique([questionSetId, sequence])
+}
+
+// ===== 面接ごとの質問（セットからのコピー + 応募者別カスタマイズ） =====
+// 面接発行時に質問セットの内容をコピーし、応募者ごとに追加・編集・削除できる。
+// 元のセット（テンプレート）には影響しない。面接開始前（SCHEDULED）のみ編集可。
+model InterviewQuestion {
+  id           Int       @id @default(autoincrement())
+  interviewId  String
+  interview    Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  sequence     Int // 面接内での出題順
+  text         String
+  timeLimitSec Int       @default(180)
+
+  @@unique([interviewId, sequence])
 }
 
 // ===== 面接（1応募者1面接） =====
@@ -69,6 +82,7 @@ model Interview {
   createdBy      AdminUser          @relation(fields: [createdById], references: [id])
   createdAt      DateTime           @default(now())
   answers        Answer[]
+  questions      InterviewQuestion[]
   recording      Recording?
   aiSummary      AiSummary?
 }
@@ -100,17 +114,18 @@ model AiInterviewConfig {
 }
 
 // ===== 回答 =====
+// 質問文は questionText にスナップショット保存する（後から質問が編集されても
+// 「実際に何を聞かれて答えたか」の記録が変わらないようにするため）
 model Answer {
-  id             Int       @id @default(autoincrement())
-  interviewId    String
-  interview      Interview @relation(fields: [interviewId], references: [id])
-  questionId     Int? // FIXED質問の場合のみ
-  question       Question? @relation(fields: [questionId], references: [id])
-  aiQuestionText String? // AI生成質問の場合、質問文をここに保存
-  sequence       Int // 面接内での通し番号
-  transcript     String? // 文字起こし（音声→テキスト）
-  durationSec    Int?
-  answeredAt     DateTime  @default(now())
+  id           Int       @id @default(autoincrement())
+  interviewId  String
+  interview    Interview @relation(fields: [interviewId], references: [id])
+  questionText String    @default("") // 出題時点の質問文（AI生成質問もここに保存）
+  isAiGenerated Boolean  @default(false) // AI生成質問への回答か
+  sequence     Int // 面接内での通し番号
+  transcript   String? // 文字起こし（音声→テキスト）
+  durationSec  Int?
+  answeredAt   DateTime  @default(now())
 
   @@unique([interviewId, sequence])
 }
