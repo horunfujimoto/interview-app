@@ -95,6 +95,11 @@ export interface AdminUser {
 }
 
 export interface AdminLoginResponse {
+  /** パスワード認証後の次ステップ（setup_required: 初回 / code_required: 2回目以降） */
+  mfa: 'setup_required' | 'code_required';
+}
+
+export interface AdminMfaVerifyResponse {
   admin: AdminUser;
 }
 

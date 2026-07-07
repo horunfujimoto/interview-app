@@ -13,12 +13,14 @@ export const AdminLoginPage = () => {
 
   const handleLoginSubmit = async (email: string, password: string): Promise<boolean> => {
     try {
-      const { admin } = await api.post<AdminLoginResponse>('/api/auth/admin/login', {
+      const { mfa } = await api.post<AdminLoginResponse>('/api/auth/admin/login', {
         email,
         password,
       });
-      toast.success(`${admin.name} さん、ようこそ`);
-      navigate('/admin/interviews');
+      if (mfa === 'setup_required') {
+        toast.info('初回ログインのため、二段階認証の設定に進みます。');
+      }
+      navigate('/admin/mfa');
       return true;
     } catch (err) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 400)) {
