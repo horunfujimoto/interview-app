@@ -1,116 +1,657 @@
-/* Base styles from App.css */
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* ============================================================
+   デザインシステム — Bootstrap の上書きとアプリ固有スタイル
+   トークンは index.css の :root で定義
+   ============================================================ */
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+/* ---------- Bootstrap 基本部品の上書き ---------- */
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.btn {
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.1rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+
+  &:active {
+    transform: translateY(1px);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.btn-primary {
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary-ink);
+  --bs-btn-hover-border-color: var(--primary-ink);
+  --bs-btn-active-bg: var(--primary-ink);
+  --bs-btn-active-border-color: var(--primary-ink);
+  --bs-btn-disabled-bg: var(--primary);
+  --bs-btn-disabled-border-color: var(--primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--primary);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-bg: var(--primary-soft);
+  --bs-btn-hover-color: var(--primary-ink);
+  --bs-btn-hover-border-color: var(--primary);
+  --bs-btn-active-bg: var(--primary-soft);
+  --bs-btn-active-color: var(--primary-ink);
+  --bs-btn-active-border-color: var(--primary);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--ink-soft);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-bg: var(--neutral-bg);
+  --bs-btn-hover-color: var(--ink);
+  --bs-btn-hover-border-color: var(--border);
+  --bs-btn-active-bg: var(--neutral-bg);
+  --bs-btn-active-color: var(--ink);
+  --bs-btn-active-border-color: var(--border);
+}
+
+.btn-outline-danger {
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-bg: var(--danger-bg);
+  --bs-btn-hover-color: var(--danger-ink);
+  --bs-btn-hover-border-color: var(--danger-ink);
+  --bs-btn-active-bg: var(--danger-bg);
+  --bs-btn-active-color: var(--danger-ink);
+  --bs-btn-active-border-color: var(--danger-ink);
 }
 
 .card {
-  padding: 2em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
 }
 
-.read-the-docs {
-  color: #888;
+.form-control,
+.form-select {
+  border-color: var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.85rem;
+  color: var(--ink);
+
+  &:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
 }
 
-/* Custom styles for InterviewPage */
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #1f2937; /* 濃いグレーの背景 (Gray 800) */
+.form-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--ink);
 }
 
-/* 青とグレーをベースにしたカラースキーム */
-.primary-blue {
-  background-color: #3b82f6; /* 青 (Blue 500) */
-}
-.primary-blue-hover:hover {
-  background-color: #2563eb; /* 濃い青 (Blue 600) */
-}
-.text-primary-blue {
-  color: #3b82f6;
+.input-group-text {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink-faint);
 }
 
-/* 画面全体のコンテナ */
+/* テーブル: 罫線を減らし、行の区切りとホバーで読ませる */
+.table {
+  --bs-table-hover-bg: var(--primary-soft);
+  margin-bottom: 0;
+
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--border);
+    padding: 0.65rem 0.85rem;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 0.8rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--ink);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-striped-bg: transparent; /* ゼブラをやめ、ホバーだけで示す */
+}
+
+/* ステータスバッジ: ベタ塗りをやめソフトピルに統一 */
+.badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+
+  &.bg-success {
+    background-color: var(--ok-bg) !important;
+    color: var(--ok-ink);
+  }
+  &.bg-warning {
+    background-color: var(--warn-bg) !important;
+    color: var(--warn-ink);
+  }
+  &.bg-danger {
+    background-color: var(--danger-bg) !important;
+    color: var(--danger-ink);
+  }
+  &.bg-secondary,
+  &.bg-dark {
+    background-color: var(--neutral-bg) !important;
+    color: var(--neutral-ink);
+  }
+  &.bg-primary {
+    background-color: var(--primary-soft) !important;
+    color: var(--primary-ink);
+  }
+}
+
+.alert {
+  border-radius: var(--radius-sm);
+  border: none;
+
+  &.alert-info {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+  &.alert-warning {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+  }
+  &.alert-danger {
+    background: var(--danger-bg);
+    color: var(--danger-ink);
+  }
+}
+
+.list-group-item {
+  border-color: var(--border);
+  padding: 0.9rem 1rem;
+}
+
+.modal-content {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 共通レイアウト ---------- */
+
+/* 中央寄せの1枚カード画面（ログイン・MFA・接続確認・終了） */
+.page-centered {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(1200px 500px at 80% -10%, var(--primary-soft) 0%, transparent 60%),
+    var(--bg);
+
+  /* カード内の見出しは画面タイトルではないため控えめに */
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+  }
+}
+
+/* ---------- ブランド（Prelude: 音声波形マーク + ワードマーク） ---------- */
+
+.logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--ink);
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .logo-wordmark {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-sub {
+    font-size: 0.64rem;
+    font-weight: 500;
+    color: var(--ink-faint);
+    letter-spacing: 0.14em;
+  }
+}
+
+.logo-mark {
+  flex-shrink: 0;
+
+  .logo-mark-bg {
+    fill: var(--primary);
+  }
+
+  .logo-mark-bars rect {
+    fill: #fff;
+  }
+}
+
+/* ダーク背景（ヒーローパネル・ステージ）用 */
+.logo-inverse {
+  color: #fff;
+
+  .logo-sub {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .logo-mark .logo-mark-bg {
+    fill: rgba(255, 255, 255, 0.16);
+  }
+}
+
+/* ページ見出し（管理画面共通） */
+.page-header {
+  margin-bottom: 1.75rem;
+
+  h1 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+
+  .page-sub {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+/* ---------- 管理画面レイアウト ---------- */
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.admin-sidebar {
+  width: 236px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  .sidebar-section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    padding: 0 0.75rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.12s ease, color 0.12s ease;
+
+    &:hover {
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    &.active {
+      background: var(--primary-soft);
+      color: var(--primary-ink);
+      font-weight: 700;
+    }
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+  }
+}
+
+.admin-main {
+  flex-grow: 1;
+  padding: 2rem 2.25rem;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+/* テーブルをカードに載せる（管理画面の一覧） */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+
+  .table {
+    margin: 0;
+  }
+}
+
+/* 認証情報の表示（発行直後の一度きり表示） */
+.credential-box {
+  background: var(--stage);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  color: var(--stage-ink);
+
+  dt {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--stage-ink-soft);
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin-bottom: 0;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+    background: transparent;
+    color: #ffd98a; /* 暗所で読める金 */
+    padding: 0;
+  }
+}
+
+/* ---------- ログイン画面（応募者・管理者） ---------- */
+
+.login-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(400px 300px at 20% 15%, rgba(255, 255, 255, 0.14) 0%, transparent 60%),
+    linear-gradient(160deg, #46429a 0%, var(--primary) 55%, #5a74e8 100%);
+  color: #fff;
+
+  h2 {
+    color: #fff;
+  }
+
+  .hero-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* 背景に大きく波形モチーフを透かす */
+  &::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 220px;
+    height: 220px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='%23ffffff' fill-opacity='0.09'%3E%3Crect x='7' y='13' width='3' height='6' rx='1.5'/%3E%3Crect x='12' y='9' width='3' height='14' rx='1.5'/%3E%3Crect x='17' y='6' width='3' height='20' rx='1.5'/%3E%3Crect x='22' y='11' width='3' height='10' rx='1.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+}
+
+/* ---------- AI面接官の波形オーブ ---------- */
+
+.ai-orb {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.16) 0%, transparent 45%),
+    linear-gradient(150deg, #46429a 0%, var(--primary) 60%, #5a74e8 100%);
+  box-shadow:
+    0 0 0 1px rgba(125, 147, 245, 0.35),
+    0 0 42px rgba(61, 82, 213, 0.45);
+
+  .ai-orb-bar {
+    width: 7px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.92);
+    height: 18px;
+  }
+
+  /* 5本のバーの基準の高さ（波形らしい山なり） */
+  .ai-orb-bar:nth-child(1) { height: 14px; }
+  .ai-orb-bar:nth-child(2) { height: 30px; }
+  .ai-orb-bar:nth-child(3) { height: 44px; }
+  .ai-orb-bar:nth-child(4) { height: 26px; }
+  .ai-orb-bar:nth-child(5) { height: 16px; }
+
+  &.is-speaking .ai-orb-bar {
+    animation: orb-wave 1.15s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  &.is-speaking .ai-orb-bar:nth-child(1) { animation-delay: 0s; }
+  &.is-speaking .ai-orb-bar:nth-child(2) { animation-delay: 0.18s; }
+  &.is-speaking .ai-orb-bar:nth-child(3) { animation-delay: 0.34s; }
+  &.is-speaking .ai-orb-bar:nth-child(4) { animation-delay: 0.5s; }
+  &.is-speaking .ai-orb-bar:nth-child(5) { animation-delay: 0.66s; }
+}
+
+@keyframes orb-wave {
+  0%, 100% { transform: scaleY(0.65); }
+  50% { transform: scaleY(1.15); }
+}
+
+/* ステージ上のコード表記（面接ID等） */
+.stage-code {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--stage-ink-soft);
+}
+
+/* ---------- 面接画面（ステージ = 夜の収録スタジオ） ---------- */
+
 .interview-grid {
   display: grid;
-  grid-template-rows: auto 1fr auto; /* ヘッダー、メイン、フッター */
+  grid-template-rows: auto 1fr auto;
   height: 100vh;
   overflow: hidden;
+  background:
+    radial-gradient(900px 400px at 70% -10%, rgba(61, 82, 213, 0.18) 0%, transparent 60%),
+    var(--stage) !important;
+  color: var(--stage-ink);
 }
 
-/* ビデオコンテナのアスペクト比維持 */
 .video-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 アスペクト比 */
+  padding-top: 56.25%;
   background-color: #000;
-  border-radius: 0.75rem; /* rounded-xl */
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-.video-wrapper video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  border: 1px solid var(--stage-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
-/* アバターエリアのカスタムスタイル */
 .ai-avatar-box {
-  background: linear-gradient(135deg, #2b3b55 0%, #1f2937 100%); /* 暗いグラデーション */
-  border: 1px solid #4b5563; /* 濃いグレーの境界線 */
+  background: linear-gradient(150deg, var(--stage-2) 0%, var(--stage) 100%);
+  border: 1px solid var(--stage-border);
+  border-radius: var(--radius);
 }
+
 .avatar-icon {
-  font-size: 80px; /* ウサギの絵文字を大きく表示 */
-  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); /* 青い光を当てる */
+  font-size: 80px;
+  filter: drop-shadow(0 0 14px rgba(90, 116, 232, 0.55));
 }
+
 .prompt-text {
   min-height: 100px;
 }
 
-/* mic-status-overlay のギャップ */
 .mic-status-overlay {
-  gap: 0.25rem; /* space-x-1 */
+  gap: 0.25rem;
 }
 
-/* モバイルレイアウト調整 */
-@media (max-width: 768px) {
-  .main-content-area {
-      grid-template-columns: 1fr;
-      gap: 1rem;
+/* 面接画面内のパネル（タイマー等）。既存の bg-gray-700 を上書き */
+.interview-grid .bg-gray-700 {
+  background: var(--stage-2) !important;
+  border: 1px solid var(--stage-border) !important;
+  border-radius: var(--radius) !important;
+}
+
+/* ステージ上の文字色: カード既定のインク色では読めないため明色に */
+.interview-grid {
+  .card {
+    color: var(--stage-ink);
+    border-color: var(--stage-border);
+    box-shadow: none;
   }
+
+  /* Tailwind由来のグレークラス（未定義）をステージ用に定義する */
+  .text-gray-200,
+  .text-gray-300 {
+    color: var(--stage-ink);
+  }
+  .text-gray-400,
+  .text-gray-500 {
+    color: var(--stage-ink-soft);
+  }
+
+  /* フッター（進捗 + 操作ボタン） */
+  footer {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-top: 1px solid var(--stage-border);
+    backdrop-filter: blur(6px);
+  }
+
+  .w-33 {
+    width: 33%;
+    min-width: 280px;
+  }
+
+  footer span {
+    white-space: nowrap; /* 「進捗:」「1 / 10 問」の縦割れ防止 */
+  }
+
+  .progress {
+    background-color: var(--stage-border);
+  }
+
+  /* ヒントボックス（bg-gray-800 は未定義クラスのため白カードのままになる） */
+  .bg-gray-800.card {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid var(--stage-border) !important;
+    color: var(--stage-ink-soft);
+  }
+}
+
+/* 質問ボックス: 左のアクセントラインで「いま話している」ことを示す */
+.interview-grid .prompt-text {
+  border-left: 4px solid var(--primary) !important;
+}
+
+.text-primary-blue {
+  color: #7d93f5; /* ステージ上で映えるインディゴの明色 */
+}
+
+/* タイマーは読み間違えないことが仕事 → モノスペース */
+.timer-display,
+.interview-grid .text-6xl {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.text-6xl {
+  font-size: 3.2rem;
+  line-height: 1.1;
+}
+
+/* ---------- レスポンシブ ---------- */
+
+@media (max-width: 768px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    overflow-x: auto;
+
+    .nav {
+      flex-direction: row !important;
+      flex-wrap: nowrap;
+    }
+
+    .sidebar-section-label {
+      display: none;
+    }
+
+    .sidebar-footer {
+      margin-top: 0;
+      border-top: none;
+      padding-top: 0;
+      margin-left: auto;
+    }
+  }
+
+  .admin-main {
+    padding: 1.25rem 1rem;
+  }
+
+  .main-content-area {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .video-wrapper {
-      padding-top: 50%; /* モバイルでは少し縦長に */
+    padding-top: 50%;
   }
 }

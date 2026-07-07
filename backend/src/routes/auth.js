@@ -8,8 +8,9 @@ const { audit } = require("../lib/audit");
 const { verifyPassword } = require("../lib/password");
 const { COOKIE_NAME, ADMIN_COOKIE_NAME, MFA_COOKIE_NAME, cookieOptions } = require("../middlewares/auth");
 
-// TOTP検証で許容する時計ズレ（前後1ステップ = 30秒）
-const TOTP_TOLERANCE = 1;
+// TOTP検証で許容する時計ズレ（単位: 秒）。前後30秒 = 前後1ステップぶん。
+// 入力に数秒かかるのが普通のため、0だと正しいコードでも頻繁に失敗する。
+const TOTP_TOLERANCE = 30;
 
 const router = express.Router();
 

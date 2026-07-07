@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Alert } from 'react-bootstrap';
 import { Title, Button } from '@/atoms';
-import { Card } from '@/molecules';
 import { toast } from 'react-toastify';
 import { Copy } from 'lucide-react';
 import {
@@ -77,19 +76,22 @@ export const AdminInterviewNewPage = () => {
   if (issued) {
     return (
       <div style={{ maxWidth: '600px' }}>
-        <Title level={1} className="mb-4">面接を発行しました</Title>
+        <div className="page-header">
+          <Title level={1}>面接を発行しました</Title>
+          <p className="page-sub">応募者に認証情報を共有してください</p>
+        </div>
         <Alert variant="warning">
           <strong>この認証情報は今回しか表示されません。</strong>
           必ずコピーして応募者に安全な方法で共有してください（DBにはハッシュのみ保存されます）。
         </Alert>
-        <Card className="p-4 mb-3">
+        <div className="credential-box mb-3">
           <dl className="mb-0">
             <dt>ログインID</dt>
-            <dd><code className="fs-5">{issued.loginId}</code></dd>
+            <dd><code>{issued.loginId}</code></dd>
             <dt className="mt-3">パスワード</dt>
-            <dd><code className="fs-5">{issued.password}</code></dd>
+            <dd><code>{issued.password}</code></dd>
           </dl>
-        </Card>
+        </div>
         <div className="d-flex gap-2">
           <Button variant="primary" onClick={copyCredentials}>
             <Copy size={18} className="me-2" />
@@ -105,7 +107,10 @@ export const AdminInterviewNewPage = () => {
 
   return (
     <div style={{ maxWidth: '600px' }}>
-      <Title level={1} className="mb-4">面接を発行</Title>
+      <div className="page-header">
+        <Title level={1}>面接を発行</Title>
+        <p className="page-sub">応募者ごとにワンタイムの認証情報を発行します</p>
+      </div>
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="candidateName">
           <Form.Label>応募者名 <span className="text-danger">*</span></Form.Label>

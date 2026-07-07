@@ -69,15 +69,15 @@ export const AdminMfaPage = () => {
 
   if (stage === null) {
     return (
-      <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center">
+      <Container fluid className="page-centered">
         <Spinner animation="border" />
       </Container>
     );
   }
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg p-4" style={{ maxWidth: '480px', width: '100%' }}>
+    <Container fluid className="page-centered">
+      <Card className="p-4" style={{ maxWidth: '480px', width: '100%' }}>
         <div className="text-center mb-4">
           <ShieldCheck size={40} className="text-primary mb-2" />
           <Title level={1} className="fs-3">二段階認証</Title>

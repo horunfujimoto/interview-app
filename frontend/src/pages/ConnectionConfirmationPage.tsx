@@ -3,7 +3,7 @@ import { Card, Container, Row, Col, Form as BootstrapForm } from 'react-bootstra
 import { Video, FileText, RefreshCcw, PlayCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Title, Button, Checkbox } from '@/atoms';
+import { Title, Button, Checkbox, LogoMark } from '@/atoms';
 import { CameraPreview, MicrophoneLevelIndicator } from '@/molecules';
 import { useMediaStream } from '@/hooks'; // useMediaStreamをインポート
 import { api, ApiError } from '../lib/api';
@@ -49,13 +49,13 @@ export const ConnectionConfirmationPage = () => {
   const isReadyToStart = stream !== null && !cameraError && !micError && consentChecked && !isStarting;
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg overflow-hidden" style={{ maxWidth: '900px' }}>
+    <Container fluid className="page-centered">
+      <Card className="overflow-hidden" style={{ maxWidth: '900px', width: '100%' }}>
         <Row className="g-0">
           <Col md={12} className="p-4">
-            <div className="d-flex align-items-center space-x-3 mb-4 border-bottom pb-3 border-gray-200">
-              <span className={classNames("fs-1", primaryBlueText)} role="img" aria-label="Rabbit Avatar">🐇</span>
-              <Title level={1} className="text-gray-800 flex-grow-1">面接開始前の接続確認と同意</Title>
+            <div className="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+              <LogoMark size={36} />
+              <Title level={1} className="flex-grow-1 mb-0">面接開始前の接続確認と同意</Title>
             </div>
 
             <Row className="g-4">

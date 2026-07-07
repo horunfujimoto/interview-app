@@ -88,8 +88,11 @@ export const AdminQuestionSetsPage = () => {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <Title level={1}>質問セット</Title>
+      <div className="d-flex justify-content-between align-items-start mb-0">
+        <div className="page-header">
+          <Title level={1}>質問セット</Title>
+          <p className="page-sub">面接発行時に選べる質問のひな型を管理します</p>
+        </div>
         <Button variant="primary" onClick={() => setShowForm(!showForm)}>
           <Plus size={18} className="me-2" />
           新規作成
@@ -156,7 +159,8 @@ export const AdminQuestionSetsPage = () => {
       {sets.length === 0 ? (
         <p className="text-muted">質問セットがまだありません。「新規作成」から作成してください。</p>
       ) : (
-        <Table striped hover responsive>
+        <div className="table-card">
+        <Table hover responsive>
           <thead>
             <tr>
               <th>セット名</th>
@@ -184,6 +188,7 @@ export const AdminQuestionSetsPage = () => {
             ))}
           </tbody>
         </Table>
+        </div>
       )}
     </div>
   );
