@@ -4,7 +4,7 @@ const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const { audit } = require("../lib/audit");
 const { verifyPassword } = require("../lib/password");
-const { COOKIE_NAME, cookieOptions } = require("../middlewares/auth");
+const { COOKIE_NAME, ADMIN_COOKIE_NAME, cookieOptions } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -61,11 +61,46 @@ router.post("/candidate/login", async (req, res) => {
   });
 });
 
+const adminLoginSchema = z.object({
+  email: z.email().max(200),
+  password: z.string().min(1).max(200),
+});
+
+const ADMIN_TOKEN_TTL = "8h";
+
+/**
+ * POST /api/auth/admin/login
+ * 管理者ログイン。成功時は応募者とは別の httpOnly Cookie で JWT を発行する。
+ */
+router.post("/admin/login", async (req, res) => {
+  const { email, password } = adminLoginSchema.parse(req.body);
+
+  const admin = await prisma.adminUser.findUnique({ where: { email } });
+  const passwordOk = await verifyPassword(password, admin?.passwordHash);
+
+  if (!admin || !passwordOk) {
+    await audit("admin", email, "login.failure", null, req.ip);
+    return res.status(401).json({ error: "メールアドレスまたはパスワードが正しくありません。" });
+  }
+
+  const token = jwt.sign(
+    { adminId: admin.id, role: "admin", adminRole: admin.role },
+    process.env.JWT_SECRET,
+    { expiresIn: ADMIN_TOKEN_TTL }
+  );
+
+  res.cookie(ADMIN_COOKIE_NAME, token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
+  await audit("admin", String(admin.id), "login.success", null, req.ip);
+
+  res.json({ admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+});
+
 /**
  * POST /api/auth/logout
  */
 router.post("/logout", (req, res) => {
   res.clearCookie(COOKIE_NAME, cookieOptions);
+  res.clearCookie(ADMIN_COOKIE_NAME, cookieOptions);
   res.json({ message: "ログアウトしました。" });
 });
 
