@@ -1,9 +1,9 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const { audit } = require("../lib/audit");
+const { verifyPassword } = require("../lib/password");
 const { COOKIE_NAME, cookieOptions } = require("../middlewares/auth");
 
 const router = express.Router();
@@ -12,9 +12,6 @@ const loginSchema = z.object({
   loginId: z.string().min(1).max(100),
   password: z.string().min(1).max(200),
 });
-
-// ログインID不明時にも bcrypt を実行し、応答時間からIDの存在を推測されにくくする
-const DUMMY_HASH = bcrypt.hashSync("dummy-password-for-timing", 10);
 
 const CANDIDATE_TOKEN_TTL = "2h"; // 面接時間 + 余裕
 
@@ -27,10 +24,8 @@ router.post("/candidate/login", async (req, res) => {
 
   const interview = await prisma.interview.findUnique({ where: { loginId } });
 
-  const passwordOk = await bcrypt.compare(
-    password,
-    interview ? interview.passwordHash : DUMMY_HASH
-  );
+  // ログインID不明時もダミーハッシュと比較し、応答時間からIDの存在を推測されにくくする
+  const passwordOk = await verifyPassword(password, interview?.passwordHash);
 
   if (!interview || !passwordOk) {
     await audit("candidate", loginId, "login.failure", null, req.ip);

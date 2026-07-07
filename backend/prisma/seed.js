@@ -5,8 +5,8 @@
  * ※ ここの認証情報は開発専用。 本番では管理画面から発行すること。
  */
 require("dotenv").config();
-const bcrypt = require("bcryptjs");
 const prisma = require("../src/lib/prisma");
+const { hashPassword } = require("../src/lib/password");
 
 const QUESTIONS = [
   "あなたのこれまでのキャリアの中で、最も大きな困難は何でしたか？また、それをどのように乗り越えましたか？具体的な例を挙げて説明してください。",
@@ -28,7 +28,7 @@ async function main() {
     update: {},
     create: {
       email: "admin@example.com",
-      passwordHash: await bcrypt.hash("Admin@12345", 12),
+      passwordHash: await hashPassword("Admin@12345"),
       name: "開発用管理者",
       role: "OWNER",
     },
@@ -65,7 +65,7 @@ async function main() {
       candidateName: "テスト 太郎",
       candidateEmail: "taro.test@example.com",
       loginId: "candidate-0001",
-      passwordHash: await bcrypt.hash("P@ssword123", 12),
+      passwordHash: await hashPassword("P@ssword123"),
       mode: "FIXED",
       status: "SCHEDULED",
       questionSetId: questionSet.id,
