@@ -35,16 +35,25 @@ export const AdminLoginPage = () => {
   };
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg p-4" style={{ maxWidth: '450px', width: '100%' }}>
-        <LoginForm
-          onSubmit={handleLoginSubmit}
-          title="管理者ログイン"
-          subtitle="採用担当者向けの管理画面です"
-          errorMessage="メールアドレスまたはパスワードが正しくありません。"
-          loadingText="認証中..."
-        />
-      </Card>
+    <Container fluid className="page-centered">
+      <div style={{ maxWidth: '420px', width: '100%' }}>
+        <div className="brand-lockup justify-content-center mb-4">
+          <span className="brand-mark" role="img" aria-label="AI一次面接">🐇</span>
+          <span>
+            <span className="brand-name">AI一次面接</span>
+            <span className="brand-sub">RECRUITER CONSOLE</span>
+          </span>
+        </div>
+        <Card className="p-4">
+          <LoginForm
+            onSubmit={handleLoginSubmit}
+            title="管理者ログイン"
+            subtitle="採用担当者向けの管理画面です"
+            errorMessage="メールアドレスまたはパスワードが正しくありません。"
+            loadingText="認証中..."
+          />
+        </Card>
+      </div>
     </Container>
   );
 };

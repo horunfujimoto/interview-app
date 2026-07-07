@@ -49,13 +49,17 @@ export const AdminInterviewsPage = () => {
 
   return (
     <div>
-      <Title level={1} className="mb-4">面接一覧</Title>
+      <div className="page-header">
+        <Title level={1}>面接一覧</Title>
+        <p className="page-sub">発行済みの面接と実施状況の一覧です</p>
+      </div>
       {interviews.length === 0 ? (
         <p className="text-muted">
           面接がまだ発行されていません。<Link to="/admin/interviews/new">面接を発行</Link>してください。
         </p>
       ) : (
-        <Table striped hover responsive>
+        <div className="table-card">
+        <Table hover responsive>
           <thead>
             <tr>
               <th>応募者</th>
@@ -88,6 +92,7 @@ export const AdminInterviewsPage = () => {
             })}
           </tbody>
         </Table>
+        </div>
       )}
     </div>
   );

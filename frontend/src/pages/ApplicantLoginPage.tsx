@@ -35,22 +35,24 @@ export const ApplicantLoginPage = () => {
   };
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg overflow-hidden" style={{ maxWidth: '900px' }}> {/* Max width for the whole card */}
-        <Row className="g-0"> {/* g-0 to remove gutter */}
+    <Container fluid className="page-centered">
+      <Card className="overflow-hidden" style={{ maxWidth: '880px', width: '100%' }}>
+        <Row className="g-0">
           {/* Left Side: Avatar and Promo Area (hidden on md and down) */}
-          <Col md={6} className="p-4 d-none d-md-flex flex-column justify-content-center align-items-center text-center" style={{ background: 'linear-gradient(135deg, #bfdbfe 0%, #60a5fa 100%)' }}>
-            <span style={{ fontSize: '80px', filter: 'drop-shadow(3px 3px 5px rgba(0,0,0,0.2))' }}>🐇</span>
-            <Title level={2} className="mt-4 text-white fw-bold">面接官がお待ちしています</Title>
-            <p className="mt-2 text-sm text-gray-100">IDとパスワードを入力して、面接を開始してください。</p>
-            <div className="mt-4 w-100 px-4">
-              <div className="d-flex align-items-center text-white text-sm mb-2">
-                <Video size={16} className="me-2" />
+          <Col md={6} className="login-hero p-5 d-none d-md-flex flex-column justify-content-center align-items-center text-center">
+            <span className="login-hero-mark" role="img" aria-label="面接官のウサギ">🐇</span>
+            <Title level={2} className="mt-4 fw-bold">面接官がお待ちしています</Title>
+            <p className="mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              IDとパスワードを入力して、面接を開始してください。
+            </p>
+            <div className="mt-4 d-flex flex-column gap-2 align-items-start">
+              <div className="hero-note">
+                <Video size={16} />
                 <span>面接は録画・録音されます</span>
               </div>
-              <div className="d-flex align-items-center text-white text-sm">
-                <ShieldCheck size={16} className="me-2" />
-                <span>セキュリティ対策済み</span>
+              <div className="hero-note">
+                <ShieldCheck size={16} />
+                <span>通信は保護されています</span>
               </div>
             </div>
           </Col>

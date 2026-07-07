@@ -15,8 +15,8 @@ export const FinishPage = () => {
   };
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg overflow-hidden text-center" style={{ maxWidth: '600px' }}>
+    <Container fluid className="page-centered">
+      <Card className="overflow-hidden text-center" style={{ maxWidth: '560px', width: '100%' }}>
         <Row className="g-0">
           <Col className="p-5 d-flex flex-column justify-content-center align-items-center">
             <span style={{ fontSize: '80px', filter: 'drop-shadow(3px 3px 5px rgba(0,0,0,0.2))' }}>

@@ -49,8 +49,8 @@ export const ConnectionConfirmationPage = () => {
   const isReadyToStart = stream !== null && !cameraError && !micError && consentChecked && !isStarting;
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center p-4" style={{ backgroundColor: '#f3f4f6' }}>
-      <Card className="shadow-lg overflow-hidden" style={{ maxWidth: '900px' }}>
+    <Container fluid className="page-centered">
+      <Card className="overflow-hidden" style={{ maxWidth: '900px', width: '100%' }}>
         <Row className="g-0">
           <Col md={12} className="p-4">
             <div className="d-flex align-items-center space-x-3 mb-4 border-bottom pb-3 border-gray-200">

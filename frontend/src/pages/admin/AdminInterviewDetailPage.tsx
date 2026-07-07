@@ -54,7 +54,10 @@ export const AdminInterviewDetailPage = () => {
         <ArrowLeft size={18} className="me-1" />
         面接一覧に戻る
       </Link>
-      <Title level={1} className="mb-4">{detail.candidateName} さんの面接結果</Title>
+      <div className="page-header">
+        <Title level={1}>{detail.candidateName} さんの面接</Title>
+        <p className="page-sub">ログインID: <code>{detail.loginId}</code></p>
+      </div>
 
       <Card className="p-4 mb-4">
         <dl className="row mb-0">
