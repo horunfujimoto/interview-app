@@ -3,20 +3,34 @@ import { Card } from '@/molecules';
 import { LoginForm } from '@/organisms';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Video, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { api, ApiError, type LoginResponse } from '../lib/api';
 
 /**
  * Applicant Login Page Organism
  */
 export const ApplicantLoginPage = () => {
+  const navigate = useNavigate();
+
   const handleLoginSubmit = async (loginId: string, password: string): Promise<boolean> => {
-    console.log('Applicant login attempt:', { loginId, password });
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-    if (loginId === 'candidate-0001' && password === 'P@ssword123') {
-      alert('応募者ログイン成功 (モック)！');
+    try {
+      const { interview } = await api.post<LoginResponse>('/api/auth/candidate/login', {
+        loginId,
+        password,
+      });
+      toast.success(`${interview.candidateName} さん、ようこそ`);
+      navigate('/applicant/confirmation');
       return true;
-    } else {
-      alert('応募者ログイン失敗 (モック)！');
-      return false;
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 400)) {
+        return false; // LoginForm 側で「ID またはパスワードが正しくありません」を表示
+      }
+      if (err instanceof ApiError) {
+        toast.error(err.message); // 期限切れ・レート制限などは個別メッセージを表示
+        return true; // LoginForm の固定エラー文を重ねて出さない
+      }
+      throw err; // ネットワークエラー等は LoginForm の汎用エラーに任せる
     }
   };
 
