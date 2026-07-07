@@ -6,6 +6,7 @@ import { Card, Table } from '@/molecules';
 import { Download, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { api, ApiError, type AdminInterviewDetail } from '../../lib/api';
+import { InterviewQuestionEditor } from './InterviewQuestionEditor';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
@@ -72,6 +73,11 @@ export const AdminInterviewDetailPage = () => {
           <dd className="col-sm-9">{detail.createdBy}</dd>
         </dl>
       </Card>
+
+      {/* 面接開始前のみ: この応募者専用の質問カスタマイズ */}
+      {detail.canEditQuestions && (
+        <InterviewQuestionEditor interviewId={detail.id} initialQuestions={detail.questions} />
+      )}
 
       {detail.recording && (
         <div className="mb-4">

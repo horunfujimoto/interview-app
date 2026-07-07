@@ -41,7 +41,7 @@ router.get("/me", async (req, res) => {
   const interview = await prisma.interview.findUnique({
     where: { id: req.auth.interviewId },
     include: {
-      questionSet: { include: { _count: { select: { questions: true } } } },
+      _count: { select: { questions: true } },
     },
   });
   if (!interview) {
@@ -54,7 +54,7 @@ router.get("/me", async (req, res) => {
       candidateName: interview.candidateName,
       mode: interview.mode,
       status: interview.status,
-      totalQuestions: interview.questionSet?._count.questions ?? null,
+      totalQuestions: interview._count.questions,
       expiresAt: interview.expiresAt,
       startedAt: interview.startedAt,
     },
@@ -98,7 +98,7 @@ router.get("/me/questions/next", async (req, res) => {
   const interview = await prisma.interview.findUnique({
     where: { id: req.auth.interviewId },
     include: {
-      questionSet: { include: { questions: { orderBy: { sequence: "asc" } } } },
+      questions: { orderBy: { sequence: "asc" } }, // 面接ごとにコピー済みの質問
       answers: { select: { sequence: true } },
     },
   });
@@ -114,7 +114,7 @@ router.get("/me/questions/next", async (req, res) => {
     return res.status(501).json({ error: "AI面接モードは現在準備中です。" });
   }
 
-  const questions = interview.questionSet?.questions ?? [];
+  const questions = interview.questions;
   const answeredCount = interview.answers.length;
 
   if (answeredCount >= questions.length) {
@@ -156,21 +156,14 @@ router.post("/me/answers", async (req, res) => {
     return res.status(409).json({ error: "面接が進行中ではないため、回答を保存できません。" });
   }
 
-  // FIXED/HYBRID: 対応する質問マスタを取得して紐付ける
-  let questionId = null;
-  if (interview.questionSetId) {
-    const question = await prisma.question.findUnique({
-      where: {
-        questionSetId_sequence: {
-          questionSetId: interview.questionSetId,
-          sequence,
-        },
-      },
-    });
-    if (!question) {
-      return res.status(400).json({ error: "指定された質問が存在しません。" });
-    }
-    questionId = question.id;
+  // この面接の質問から出題時点の質問文をスナップショット保存する
+  const question = await prisma.interviewQuestion.findUnique({
+    where: {
+      interviewId_sequence: { interviewId: interview.id, sequence },
+    },
+  });
+  if (!question) {
+    return res.status(400).json({ error: "指定された質問が存在しません。" });
   }
 
   const answer = await prisma.answer.upsert({
@@ -180,7 +173,7 @@ router.post("/me/answers", async (req, res) => {
     update: { transcript: transcript ?? null, durationSec: durationSec ?? null },
     create: {
       interviewId: interview.id,
-      questionId,
+      questionText: question.text,
       sequence,
       transcript: transcript ?? null,
       durationSec: durationSec ?? null,
