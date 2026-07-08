@@ -5,7 +5,10 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "dev": "nodemon server.js",
-    "maintenance": "node scripts/maintenance.js"
+    "maintenance": "node scripts/maintenance.js",
+    "db:migrate": "prisma migrate dev && prisma generate",
+    "db:generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
