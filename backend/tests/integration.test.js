@@ -152,6 +152,18 @@ test("応募者フロー: ログイン→開始→質問進行→回答冪等→
     assert.equal(Number(segment.sizeBytes), 3000);
     assert.equal(fs.statSync(filePath).size, 3000);
     assert.equal(segment.lastSeq, 3);
+
+    // 新セッションの「初回チャンク」を並列2本 → セグメント作成競合(P2002)でも500にならない
+    const race = "itest-race-session1";
+    const results = await Promise.all([sendChunk(race, 1, 500), sendChunk(race, 1, 500)]);
+    for (const r of results) {
+      assert.ok(r.status === 200, `初回並列で500が出た: ${r.status}`);
+    }
+    const raceSeg = await prisma.recordingSegment.findUnique({
+      where: { interviewId_sessionId: { interviewId: seed.interview.id, sessionId: race } },
+    });
+    createdUploadFiles.push(path.join(UPLOAD_DIR, raceSeg.storageKey));
+    assert.equal(Number(raceSeg.sizeBytes), 500); // 追記は1回分のみ
   });
 
   await t.test("終了でCOMPLETEDになり、以後の質問取得は409", async () => {

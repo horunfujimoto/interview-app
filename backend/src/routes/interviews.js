@@ -244,13 +244,25 @@ router.post(
     // ファイル名はサーバー側で決定（クライアント指定値はIDとして検証済みのもののみ使用）
     const storageKey = `${interview.id}-${sessionId}.webm`;
 
-    const segment = await prisma.recordingSegment.upsert({
-      where: {
-        interviewId_sessionId: { interviewId: interview.id, sessionId },
-      },
-      update: {},
-      create: { interviewId: interview.id, sessionId, storageKey },
-    });
+    let segment;
+    try {
+      segment = await prisma.recordingSegment.upsert({
+        where: {
+          interviewId_sessionId: { interviewId: interview.id, sessionId },
+        },
+        update: {},
+        create: { interviewId: interview.id, sessionId, storageKey },
+      });
+    } catch (err) {
+      // 同一セッションの初回チャンクが並列に届くと、Prisma の upsert は
+      // 一意制約違反(P2002)を投げうる。既に他方が作成済みなので取り直して続行する。
+      if (err.code === "P2002") {
+        segment = await prisma.recordingSegment.findUnique({
+          where: { interviewId_sessionId: { interviewId: interview.id, sessionId } },
+        });
+      }
+      if (!segment) throw err;
+    }
 
     if (seq <= segment.lastSeq) {
       // 再送された既受理チャンク: 冪等に成功を返す（二重追記しない）
