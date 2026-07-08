@@ -81,10 +81,11 @@ model Interview {
   createdById    Int
   createdBy      AdminUser          @relation(fields: [createdById], references: [id])
   createdAt      DateTime           @default(now())
-  answers        Answer[]
-  questions      InterviewQuestion[]
-  recording      Recording?
-  aiSummary      AiSummary?
+  answers           Answer[]
+  questions         InterviewQuestion[]
+  recording         Recording?
+  recordingSegments RecordingSegment[]
+  aiSummary         AiSummary?
 }
 
 enum InterviewMode {
@@ -130,7 +131,25 @@ model Answer {
   @@unique([interviewId, sequence])
 }
 
-// ===== 録画 =====
+// ===== 録画セグメント（逐次アップロード） =====
+// 面接中、5秒ごとのチャンクをサーバーに追記していく。
+// リロード等で録画セッションが切れると新しいセグメント（別ファイル）になる。
+// クラッシュしてもアップロード済みのぶんは保全される。
+model RecordingSegment {
+  id          Int       @id @default(autoincrement())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  sessionId   String // クライアントが録画セッションごとに生成
+  storageKey  String // uploads/ 配下のファイル名
+  sizeBytes   BigInt    @default(0)
+  lastSeq     Int       @default(0) // 受理済みチャンク連番（順序保証・重複排除用）
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([interviewId, sessionId])
+}
+
+// ===== 録画（旧: 一括アップロード。互換のため保持） =====
 model Recording {
   id          Int       @id @default(autoincrement())
   interviewId String    @unique

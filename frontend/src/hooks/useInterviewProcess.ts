@@ -11,6 +11,8 @@ interface UseInterviewProcess {
   isLoading: boolean;
   error: Error | null;
   isUnauthorized: boolean;
+  /** 面接が未開始（SCHEDULED）のまま面接画面を開いた → 接続確認へ誘導する */
+  needsStart: boolean;
   submitAnswerAndNext: (durationSec?: number) => Promise<void>;
   finishInterview: () => Promise<void>;
   hasInterviewFinished: boolean;
@@ -28,6 +30,7 @@ export const useInterviewProcess = (): UseInterviewProcess => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
+  const [needsStart, setNeedsStart] = useState<boolean>(false);
   const [hasInterviewFinished, setHasInterviewFinished] = useState<boolean>(false);
   const initialized = useRef(false);
 
@@ -71,6 +74,17 @@ export const useInterviewProcess = (): UseInterviewProcess => {
       try {
         const { interview } = await api.get<MeResponse>('/api/interviews/me');
         setInterviewId(interview.id);
+
+        // 状態に応じた誘導（リロード・直接アクセスへの耐性）
+        if (interview.status === 'COMPLETED') {
+          setHasInterviewFinished(true); // 終了済み → 終了画面へ
+          return;
+        }
+        if (interview.status === 'SCHEDULED') {
+          setNeedsStart(true); // 未開始 → 接続確認画面へ
+          return;
+        }
+
         const finished = await fetchNextQuestion();
         if (finished) {
           await finishInterview(); // リロード時に全問回答済みだった場合
@@ -114,6 +128,7 @@ export const useInterviewProcess = (): UseInterviewProcess => {
     isLoading,
     error,
     isUnauthorized,
+    needsStart,
     submitAnswerAndNext,
     finishInterview,
     hasInterviewFinished,

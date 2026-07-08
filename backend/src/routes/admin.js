@@ -125,7 +125,7 @@ router.get("/interviews", async (req, res) => {
     include: {
       questionSet: { select: { name: true } },
       recording: { select: { id: true } },
-      _count: { select: { answers: true } },
+      _count: { select: { answers: true, recordingSegments: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -139,7 +139,7 @@ router.get("/interviews", async (req, res) => {
       status: iv.status,
       questionSetName: iv.questionSet?.name ?? null,
       answerCount: iv._count.answers,
-      hasRecording: !!iv.recording,
+      hasRecording: !!iv.recording || iv._count.recordingSegments > 0,
       expiresAt: iv.expiresAt,
       startedAt: iv.startedAt,
       finishedAt: iv.finishedAt,
@@ -234,6 +234,7 @@ router.get("/interviews/:id", async (req, res) => {
       questions: { orderBy: { sequence: "asc" } },
       answers: { orderBy: { sequence: "asc" } },
       recording: { select: { mimeType: true, sizeBytes: true, uploadedAt: true } },
+      recordingSegments: { orderBy: { createdAt: "asc" } },
       aiSummary: true,
       createdBy: { select: { name: true } },
     },
@@ -276,8 +277,41 @@ router.get("/interviews/:id", async (req, res) => {
             uploadedAt: interview.recording.uploadedAt,
           }
         : null,
+      recordingSegments: interview.recordingSegments.map((s) => ({
+        id: s.id,
+        sizeBytes: s.sizeBytes.toString(),
+        createdAt: s.createdAt,
+      })),
       aiSummary: interview.aiSummary,
     },
+  });
+});
+
+/**
+ * GET /api/admin/interviews/:id/recordings/:segmentId
+ * 逐次アップロードされた録画セグメントのダウンロード。閲覧は監査ログに記録する。
+ */
+router.get("/interviews/:id/recordings/:segmentId", async (req, res) => {
+  const segmentId = Number(req.params.segmentId);
+  if (!Number.isInteger(segmentId)) {
+    return res.status(400).json({ error: "IDが不正です。" });
+  }
+  const interview = await prisma.interview.findFirst({
+    where: { id: req.params.id, ...interviewScope(req.auth) },
+    include: { recordingSegments: { where: { id: segmentId } } },
+  });
+  const segment = interview?.recordingSegments[0];
+  if (!interview || !segment) {
+    return res.status(404).json({ error: "録画が見つかりません。" });
+  }
+
+  await audit("admin", String(req.auth.adminId), "recording.download", `interviewId=${interview.id} segmentId=${segmentId}`, req.ip);
+
+  const filePath = path.join(__dirname, "..", "..", "uploads", path.basename(segment.storageKey));
+  res.download(filePath, `recording-${interview.id}-part${segmentId}.webm`, (err) => {
+    if (err && !res.headersSent) {
+      res.status(404).json({ error: "録画ファイルが見つかりません。" });
+    }
   });
 });
 

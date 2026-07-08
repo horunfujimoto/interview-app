@@ -8,7 +8,6 @@ import {
 } from '../organisms';
 import { QuestionBox, VideoPlayer, HintBox, TimerDisplay } from '../molecules';
 import { useInterviewTimers, useMediaStream, useInterviewProcess, useMediaRecorder } from '../hooks';
-import { api } from '../lib/api';
 import classNames from 'classnames';
 import { toast } from 'react-toastify';
 
@@ -18,7 +17,7 @@ const InterviewPage: React.FC = () => {
   // カスタムフック
   const { totalTime, responseRemainingTime, startTimers, resetResponseTimer } = useInterviewTimers();
   const { stream, isMicActive, error: mediaError } = useMediaStream();
-  const { isRecording, startRecording, stopRecording } = useMediaRecorder();
+  const { isRecording, hasUploadTrouble, startRecording, stopRecording } = useMediaRecorder();
   const {
     interviewId,
     currentQuestionSequence,
@@ -29,6 +28,7 @@ const InterviewPage: React.FC = () => {
     isLoading,
     error: interviewProcessError,
     isUnauthorized,
+    needsStart,
     submitAnswerAndNext,
     finishInterview,
     hasInterviewFinished,
@@ -64,6 +64,20 @@ const InterviewPage: React.FC = () => {
     }
   }, [isUnauthorized, navigate]);
 
+  // 未開始のまま面接画面を開いた → 接続確認へ
+  useEffect(() => {
+    if (needsStart) {
+      navigate('/applicant/confirmation');
+    }
+  }, [needsStart, navigate]);
+
+  // 録画アップロードの継続失敗を警告（録画自体は新セッションで継続している）
+  useEffect(() => {
+    if (hasUploadTrouble) {
+      toast.warning('録画の送信が不安定です。ネットワーク接続を確認してください。面接はこのまま続けられます。');
+    }
+  }, [hasUploadTrouble]);
+
   // メディアアクセスエラーのトースト表示
   useEffect(() => {
     if (mediaError) {
@@ -78,23 +92,17 @@ const InterviewPage: React.FC = () => {
     }
   }, [interviewProcessError]);
 
-  // 面接終了時: 録画を停止してアップロードし、終了画面へ
+  // 面接終了時: 録画を停止し、未送信チャンクを送り切ってから終了画面へ
+  // （チャンクは面接中に逐次アップロード済みのため、ここで待つのは残りわずか）
   useEffect(() => {
     if (!hasInterviewFinished || isUploadingRef.current) return;
     isUploadingRef.current = true;
 
     (async () => {
       try {
-        const blob = await stopRecording();
-        if (blob && blob.size > 0) {
-          const formData = new FormData();
-          formData.append('recording', blob, 'recording.webm');
-          await api.postForm('/api/interviews/me/recording', formData);
-        }
+        await stopRecording();
       } catch (err) {
-        // アップロード失敗でも応募者の面接体験は完了させる（データはサーバー側ログで追跡）
-        console.error('録画アップロードに失敗しました:', err);
-        toast.error('録画のアップロードに失敗しました。担当者にご連絡ください。');
+        console.error('録画の停止処理に失敗しました:', err);
       } finally {
         navigate('/applicant/finish');
       }
