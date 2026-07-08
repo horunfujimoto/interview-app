@@ -174,6 +174,33 @@ test("応募者フロー: ログイン→開始→質問進行→回答冪等→
   });
 });
 
+// ---------- エラーハンドリング ----------
+
+test("errorHandler: 不正JSONは400・16MB超チャンクは413（500に丸めない）", async () => {
+  const badJson = await fetch(`${BASE}/api/auth/candidate/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{broken json",
+  });
+  assert.equal(badJson.status, 400);
+  const body = await badJson.json();
+  assert.ok(!/[A-Za-z]+Error|at /.test(body.error), "内部情報が漏れている");
+
+  // 認証済みで 16MB 超のチャンク → 413（メインの面接は完了済みのため専用面接を使う）
+  const loginRes = await fetch(`${BASE}/api/auth/candidate/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ loginId: seed.errorCandidate.loginId, password: seed.errorCandidate.password }),
+  });
+  const cookie = getCookie(loginRes);
+  const tooBig = await fetch(`${BASE}/api/interviews/me/recording/chunk?session=itest-too-big-01&seq=1`, {
+    method: "POST",
+    headers: { "Content-Type": "video/webm", Cookie: cookie },
+    body: Buffer.alloc(17 * 1024 * 1024, 1),
+  });
+  assert.equal(tooBig.status, 413);
+});
+
 // ---------- 管理者認可 ----------
 
 test("管理者: MFA未完了トークンでは管理APIに入れず、RECRUITERは他人の面接を見られない", async (t) => {

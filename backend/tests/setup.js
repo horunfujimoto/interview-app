@@ -135,12 +135,15 @@ async function seedTestData(prisma) {
   const interview = await makeInterview("test-cand-main", owner.id);
   const completedInterview = await makeInterview("test-cand-done", owner.id, "COMPLETED");
   const ownerOnlyInterview = await makeInterview("test-cand-scope", owner.id);
+  const errorTestInterview = await makeInterview("test-cand-error", owner.id, "IN_PROGRESS");
 
   return {
     owner: { email: "owner@test.local", password: "Owner@Test123", totpSecret },
     recruiter: { email: "recruiter@test.local", password: "Owner@Test123", totpSecret: recruiterSecret, id: recruiter.id },
     candidate: { loginId: "test-cand-main", password: "Cand@Test123" },
     completedCandidate: { loginId: "test-cand-done", password: "Cand@Test123" },
+    errorCandidate: { loginId: "test-cand-error", password: "Cand@Test123" },
+    errorTestInterview,
     interview,
     completedInterview,
     ownerOnlyInterview,
