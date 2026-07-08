@@ -53,6 +53,10 @@ export const useMediaRecorder = (): UseMediaRecorder => {
     return false;
   }, []);
 
+  // onstop からの再帰的な再開参照用（useCallback 内で自身を直接参照すると
+  // react-hooks/immutability 違反になるため ref を経由する）
+  const beginSessionRef = useRef<(stream: MediaStream) => void>(() => {});
+
   const beginSession = useCallback((stream: MediaStream) => {
     const session = newSessionId();
     sessionRef.current = session;
@@ -86,7 +90,7 @@ export const useMediaRecorder = (): UseMediaRecorder => {
     recorder.onstop = () => {
       // 送信失敗による停止なら、新しいセッションで録画を再開する
       if (sessionBrokenRef.current && !stoppingRef.current && streamRef.current) {
-        beginSession(streamRef.current);
+        beginSessionRef.current(streamRef.current);
       }
     };
 
@@ -94,6 +98,10 @@ export const useMediaRecorder = (): UseMediaRecorder => {
     recorderRef.current = recorder;
     setIsRecording(true);
   }, [sendChunk]);
+
+  useEffect(() => {
+    beginSessionRef.current = beginSession;
+  }, [beginSession]);
 
   const startRecording = useCallback((stream: MediaStream) => {
     if (recorderRef.current?.state === 'recording') return;
