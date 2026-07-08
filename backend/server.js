@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
-const { rateLimit } = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 
 const authRouter = require("./src/routes/auth");
 const interviewsRouter = require("./src/routes/interviews");
@@ -21,6 +21,13 @@ for (const key of ["DATABASE_URL", "JWT_SECRET"]) {
 
 const app = express();
 
+// リバースプロキシ（nginx / ALB 等）配下では TRUST_PROXY にホップ数を設定する（例: 1）。
+// 未設定のまま本番プロキシ配下に置くと、全ユーザーの req.ip がプロキシの IP になり、
+// レート制限の共有や監査ログの IP 誤記録が起きる。
+if (process.env.TRUST_PROXY) {
+  app.set("trust proxy", Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+}
+
 app.use(helmet());
 app.use(
   cors({
@@ -31,20 +38,38 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
-// ログイン総当たり対策: 15分あたり10回まで
-const authLimiter = rateLimit({
+// ログイン総当たり対策は2層構成:
+// 1層目（アカウント単位）: IP + ログインID/メール ごとに 15分10回。
+//   同一ネットワーク（大学・企業のNAT）から複数の応募者が同時にログインしても
+//   互いのカウントを消費しない。
+// 2層目（IP単位）: 15分60回。単一IPから多数のIDを総当たりする攻撃の総量を抑える。
+const RATE_MESSAGE = { error: "試行回数が上限に達しました。しばらくしてから再度お試しください。" };
+
+const accountLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: { error: "試行回数が上限に達しました。しばらくしてから再度お試しください。" },
+  keyGenerator: (req) => {
+    const account = String(req.body?.loginId ?? req.body?.email ?? "").slice(0, 200).toLowerCase();
+    return `${ipKeyGenerator(req.ip)}|${account}`;
+  },
+  message: RATE_MESSAGE,
+});
+
+const ipLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: RATE_MESSAGE,
 });
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/auth", ipLimiter, accountLimiter, authRouter);
 app.use("/api/interviews", interviewsRouter);
 app.use("/api/admin", adminRouter);
 

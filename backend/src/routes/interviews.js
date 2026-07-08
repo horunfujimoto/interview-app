@@ -260,21 +260,29 @@ router.post(
       // 再送された既受理チャンク: 冪等に成功を返す（二重追記しない）
       return res.json({ received: seq, lastSeq: segment.lastSeq });
     }
-    if (seq !== segment.lastSeq + 1) {
-      // 欠落があるとファイルが壊れるため受理しない → クライアントは新セッションで継続
-      return res.status(409).json({ error: "チャンクの順序が不正です。", expected: segment.lastSeq + 1 });
+
+    // 連番の受理はアトミックな条件付き更新で行う（lastSeq = seq-1 の行だけが更新される）。
+    // 同一チャンクが並列に届いても、この「席取り」に勝てるのは1リクエストだけなので
+    // 二重追記が起きない。
+    const claimed = await prisma.recordingSegment.updateMany({
+      where: { id: segment.id, lastSeq: seq - 1 },
+      data: { lastSeq: seq, sizeBytes: { increment: BigInt(req.body.length) } },
+    });
+    if (claimed.count === 0) {
+      const current = await prisma.recordingSegment.findUnique({ where: { id: segment.id } });
+      if (current && seq <= current.lastSeq) {
+        return res.json({ received: seq, lastSeq: current.lastSeq }); // 並列再送に負けた側: 冪等に成功
+      }
+      // 欠番があるとファイルが壊れるため受理しない → クライアントは新セッションで継続
+      return res.status(409).json({ error: "チャンクの順序が不正です。", expected: (current?.lastSeq ?? 0) + 1 });
     }
 
     await fs.promises.appendFile(path.join(UPLOAD_DIR, storageKey), req.body);
-    const updated = await prisma.recordingSegment.update({
-      where: { id: segment.id },
-      data: { lastSeq: seq, sizeBytes: segment.sizeBytes + BigInt(req.body.length) },
-    });
     if (seq === 1) {
       await audit("candidate", interview.id, "recording.segment_start", `session=${sessionId}`, req.ip);
     }
 
-    res.json({ received: seq, lastSeq: updated.lastSeq });
+    res.json({ received: seq, lastSeq: seq });
   }
 );
 
