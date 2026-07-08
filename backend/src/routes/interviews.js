@@ -1,19 +1,15 @@
 const express = require("express");
-const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const { audit } = require("../lib/audit");
+const { UPLOAD_DIR, resolveUploadPath } = require("../lib/storage");
 const { requireCandidate } = require("../middlewares/auth");
 
 const router = express.Router();
 
 router.use(requireCandidate);
-
-// ===== 録画アップロード設定 =====
-const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -277,7 +273,7 @@ router.post(
       return res.status(409).json({ error: "チャンクの順序が不正です。", expected: (current?.lastSeq ?? 0) + 1 });
     }
 
-    await fs.promises.appendFile(path.join(UPLOAD_DIR, storageKey), req.body);
+    await fs.promises.appendFile(resolveUploadPath(storageKey), req.body);
     if (seq === 1) {
       await audit("candidate", interview.id, "recording.segment_start", `session=${sessionId}`, req.ip);
     }

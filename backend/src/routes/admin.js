@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const { audit } = require("../lib/audit");
+const { resolveUploadPath } = require("../lib/storage");
 const { hashPassword } = require("../lib/password");
 const { requireAdmin } = require("../middlewares/auth");
 
@@ -307,7 +308,7 @@ router.get("/interviews/:id/recordings/:segmentId", async (req, res) => {
 
   await audit("admin", String(req.auth.adminId), "recording.download", `interviewId=${interview.id} segmentId=${segmentId}`, req.ip);
 
-  const filePath = path.join(__dirname, "..", "..", "uploads", path.basename(segment.storageKey));
+  const filePath = resolveUploadPath(segment.storageKey);
   res.download(filePath, `recording-${interview.id}-part${segmentId}.webm`, (err) => {
     if (err && !res.headersSent) {
       res.status(404).json({ error: "録画ファイルが見つかりません。" });
@@ -489,7 +490,7 @@ router.get("/interviews/:id/recording", async (req, res) => {
 
   await audit("admin", String(req.auth.adminId), "recording.download", `interviewId=${interview.id}`, req.ip);
 
-  const filePath = path.join(__dirname, "..", "..", "uploads", path.basename(interview.recording.storageKey));
+  const filePath = resolveUploadPath(interview.recording.storageKey);
   res.download(filePath, `recording-${interview.id}.webm`, (err) => {
     if (err && !res.headersSent) {
       res.status(404).json({ error: "録画ファイルが見つかりません。" });
