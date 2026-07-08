@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/atoms';
 import { Table } from '@/molecules';
 import { Title } from '@/atoms';
 import { Spinner } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { api, ApiError, type AdminInterviewRow } from '../../lib/api';
+import { api, type AdminInterviewRow } from '../../lib/api';
+import { useAdminApiError } from './useAdminApiError';
 
 const STATUS_LABELS: Record<string, { label: string; variant: string }> = {
   SCHEDULED: { label: '未実施', variant: 'secondary' },
@@ -25,7 +25,7 @@ const MODE_LABELS: Record<string, string> = {
  * 面接一覧ページ（管理者）
  */
 export const AdminInterviewsPage = () => {
-  const navigate = useNavigate();
+  const handleApiError = useAdminApiError();
   const [interviews, setInterviews] = useState<AdminInterviewRow[] | null>(null);
 
   useEffect(() => {
@@ -34,14 +34,10 @@ export const AdminInterviewsPage = () => {
         const data = await api.get<{ interviews: AdminInterviewRow[] }>('/api/admin/interviews');
         setInterviews(data.interviews);
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) {
-          navigate('/admin/login');
-          return;
-        }
-        toast.error(err instanceof ApiError ? err.message : '面接一覧の取得に失敗しました。');
+        handleApiError(err, '面接一覧の取得に失敗しました。');
       }
     })();
-  }, [navigate]);
+  }, [handleApiError]);
 
   if (interviews === null) {
     return <div className="text-center p-5"><Spinner animation="border" /></div>;

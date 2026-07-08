@@ -6,11 +6,11 @@ import { toast } from 'react-toastify';
 import { Copy } from 'lucide-react';
 import {
   api,
-  ApiError,
   type QuestionSetSummary,
   type CreateInterviewResponse,
   type IssuedCredentials,
 } from '../../lib/api';
+import { useAdminApiError } from './useAdminApiError';
 
 /**
  * 面接発行ページ（管理者）
@@ -18,6 +18,7 @@ import {
  */
 export const AdminInterviewNewPage = () => {
   const navigate = useNavigate();
+  const handleApiError = useAdminApiError();
   const [questionSets, setQuestionSets] = useState<QuestionSetSummary[]>([]);
   const [candidateName, setCandidateName] = useState('');
   const [candidateEmail, setCandidateEmail] = useState('');
@@ -36,12 +37,10 @@ export const AdminInterviewNewPage = () => {
           setQuestionSetId(data.questionSets[0].id);
         }
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) {
-          navigate('/admin/login');
-        }
+        handleApiError(err); // 初期ロード失敗は従来どおりサイレント（401のみ誘導）
       }
     })();
-  }, [navigate]);
+  }, [handleApiError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,11 +56,7 @@ export const AdminInterviewNewPage = () => {
       setIssued(data.credentials);
       toast.success('面接を発行しました。');
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        navigate('/admin/login');
-        return;
-      }
-      toast.error(err instanceof ApiError ? err.message : '面接の発行に失敗しました。');
+      handleApiError(err, '面接の発行に失敗しました。');
     } finally {
       setSubmitting(false);
     }
