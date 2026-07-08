@@ -87,12 +87,17 @@ export const api = {
 };
 
 // ===== 型定義 =====
+// バックエンド（prisma/schema.prisma の enum）と手動同期している。
+// スキーマの InterviewMode / InterviewStatus を変更したらここも更新すること。
+
+export type InterviewMode = 'FIXED' | 'AI' | 'HYBRID';
+export type InterviewStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED' | 'CANCELLED';
 
 export interface InterviewSummary {
   id: string;
   candidateName: string;
-  mode: 'FIXED' | 'AI' | 'HYBRID';
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED' | 'CANCELLED';
+  mode: InterviewMode;
+  status: InterviewStatus;
   totalQuestions?: number | null;
   expiresAt?: string;
   startedAt?: string | null;
@@ -150,8 +155,8 @@ export interface AdminInterviewRow {
   candidateName: string;
   candidateEmail: string | null;
   loginId: string;
-  mode: 'FIXED' | 'AI' | 'HYBRID';
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED' | 'CANCELLED';
+  mode: InterviewMode;
+  status: InterviewStatus;
   questionSetName: string | null;
   answerCount: number;
   hasRecording: boolean;
@@ -167,7 +172,7 @@ export interface IssuedCredentials {
 }
 
 export interface CreateInterviewResponse {
-  interview: { id: string; candidateName: string; mode: string; expiresAt: string };
+  interview: { id: string; candidateName: string; mode: InterviewMode; expiresAt: string };
   credentials: IssuedCredentials;
 }
 
@@ -183,8 +188,8 @@ export interface AdminInterviewDetail {
   candidateName: string;
   candidateEmail: string | null;
   loginId: string;
-  mode: 'FIXED' | 'AI' | 'HYBRID';
-  status: string;
+  mode: InterviewMode;
+  status: InterviewStatus;
   questionSetName: string | null;
   expiresAt: string;
   startedAt: string | null;
