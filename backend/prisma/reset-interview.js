@@ -21,6 +21,7 @@ async function main() {
   await prisma.$transaction([
     prisma.answer.deleteMany({ where: { interviewId: interview.id } }),
     prisma.recording.deleteMany({ where: { interviewId: interview.id } }),
+    prisma.recordingSegment.deleteMany({ where: { interviewId: interview.id } }),
     prisma.interview.update({
       where: { id: interview.id },
       data: { status: "SCHEDULED", startedAt: null, finishedAt: null, expiresAt },

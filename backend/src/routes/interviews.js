@@ -211,6 +211,73 @@ router.post("/me/finish", async (req, res) => {
   res.json({ interview: { id: updated.id, status: updated.status } });
 });
 
+// ===== 録画の逐次アップロード =====
+// クライアントは5秒ごとのチャンクを連番付きで送信し、サーバーはファイルに追記する。
+// リロード等でセッションが切れたら新しい sessionId で別セグメントとして継続。
+
+const SESSION_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
+
+/**
+ * POST /api/interviews/me/recording/chunk?session=...&seq=N
+ * ボディは video/webm の生バイト列（最大16MB）。
+ * 連番が飛んだ場合は 409 を返し、クライアントは新セッションでやり直す。
+ */
+router.post(
+  "/me/recording/chunk",
+  express.raw({ type: ["video/webm", "application/octet-stream"], limit: "16mb" }),
+  async (req, res) => {
+    const sessionId = String(req.query.session ?? "");
+    const seq = Number(req.query.seq);
+    if (!SESSION_ID_RE.test(sessionId) || !Number.isInteger(seq) || seq < 1 || seq > 100000) {
+      return res.status(400).json({ error: "パラメータが不正です。" });
+    }
+    if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+      return res.status(400).json({ error: "チャンクが空です。" });
+    }
+
+    const interview = await prisma.interview.findUnique({
+      where: { id: req.auth.interviewId },
+    });
+    if (!interview) {
+      return res.status(404).json({ error: "面接情報が見つかりません。" });
+    }
+    if (!["IN_PROGRESS", "COMPLETED"].includes(interview.status)) {
+      return res.status(409).json({ error: "この面接には録画をアップロードできません。" });
+    }
+
+    // ファイル名はサーバー側で決定（クライアント指定値はIDとして検証済みのもののみ使用）
+    const storageKey = `${interview.id}-${sessionId}.webm`;
+
+    const segment = await prisma.recordingSegment.upsert({
+      where: {
+        interviewId_sessionId: { interviewId: interview.id, sessionId },
+      },
+      update: {},
+      create: { interviewId: interview.id, sessionId, storageKey },
+    });
+
+    if (seq <= segment.lastSeq) {
+      // 再送された既受理チャンク: 冪等に成功を返す（二重追記しない）
+      return res.json({ received: seq, lastSeq: segment.lastSeq });
+    }
+    if (seq !== segment.lastSeq + 1) {
+      // 欠落があるとファイルが壊れるため受理しない → クライアントは新セッションで継続
+      return res.status(409).json({ error: "チャンクの順序が不正です。", expected: segment.lastSeq + 1 });
+    }
+
+    await fs.promises.appendFile(path.join(UPLOAD_DIR, storageKey), req.body);
+    const updated = await prisma.recordingSegment.update({
+      where: { id: segment.id },
+      data: { lastSeq: seq, sizeBytes: segment.sizeBytes + BigInt(req.body.length) },
+    });
+    if (seq === 1) {
+      await audit("candidate", interview.id, "recording.segment_start", `session=${sessionId}`, req.ip);
+    }
+
+    res.json({ received: seq, lastSeq: updated.lastSeq });
+  }
+);
+
 /**
  * POST /api/interviews/me/recording
  * 録画ファイル（webm）をアップロードする。

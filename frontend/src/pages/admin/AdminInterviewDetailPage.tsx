@@ -82,16 +82,32 @@ export const AdminInterviewDetailPage = () => {
         <InterviewQuestionEditor interviewId={detail.id} initialQuestions={detail.questions} />
       )}
 
-      {detail.recording && (
-        <div className="mb-4">
-          <a href={`${API_BASE}/api/admin/interviews/${detail.id}/recording`} download>
-            <Button variant="outline-primary">
-              <Download size={18} className="me-2" />
-              録画をダウンロード
-              {detail.recording.sizeBytes && ` (${(Number(detail.recording.sizeBytes) / 1024 / 1024).toFixed(1)} MB)`}
-            </Button>
-          </a>
+      {(detail.recordingSegments.length > 0 || detail.recording) && (
+        <div className="mb-4 d-flex flex-wrap gap-2">
+          {detail.recordingSegments.map((seg, i) => (
+            <a key={seg.id} href={`${API_BASE}/api/admin/interviews/${detail.id}/recordings/${seg.id}`} download>
+              <Button variant="outline-primary">
+                <Download size={18} className="me-2" />
+                {detail.recordingSegments.length > 1 ? `録画 パート${i + 1}` : '録画をダウンロード'}
+                {` (${(Number(seg.sizeBytes) / 1024 / 1024).toFixed(1)} MB)`}
+              </Button>
+            </a>
+          ))}
+          {detail.recording && (
+            <a href={`${API_BASE}/api/admin/interviews/${detail.id}/recording`} download>
+              <Button variant="outline-secondary">
+                <Download size={18} className="me-2" />
+                録画（旧形式）
+                {detail.recording.sizeBytes && ` (${(Number(detail.recording.sizeBytes) / 1024 / 1024).toFixed(1)} MB)`}
+              </Button>
+            </a>
+          )}
         </div>
+      )}
+      {detail.recordingSegments.length > 1 && (
+        <p className="text-muted text-sm mb-4">
+          ※録画が複数パートに分かれているのは、面接中にページの再読み込み等があったためです。時系列順に並んでいます。
+        </p>
       )}
 
       <Title level={2} className="mb-3 fs-4">回答一覧（{detail.answers.length}件）</Title>

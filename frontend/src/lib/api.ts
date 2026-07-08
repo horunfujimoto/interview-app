@@ -2,7 +2,7 @@
  * バックエンド API クライアント。
  * 認証は httpOnly Cookie で行うため、全リクエストに credentials: 'include' を付ける。
  */
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 export class ApiError extends Error {
   status: number;
@@ -174,5 +174,6 @@ export interface AdminInterviewDetail {
     answeredAt: string;
   }[];
   recording: { mimeType: string; sizeBytes: string | null; uploadedAt: string } | null;
+  recordingSegments: { id: number; sizeBytes: string; createdAt: string }[];
   aiSummary: unknown | null;
 }
