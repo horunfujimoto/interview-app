@@ -57,6 +57,33 @@ export const api = {
     }
     return body as T;
   },
+  /**
+   * 録画チャンクの送信。通常の request() と契約が異なるため専用:
+   * 例外を投げず結果を値で返す（'conflict' = 連番不整合でセッション継続不能、
+   * 'failed' = ネットワーク断等。呼び出し側が新セッションで復旧する）。
+   */
+  postRecordingChunk: async (
+    session: string,
+    seq: number,
+    blob: Blob
+  ): Promise<'ok' | 'conflict' | 'failed'> => {
+    const url = `${API_BASE}/api/interviews/me/recording/chunk?session=${session}&seq=${seq}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'video/webm' },
+          body: blob,
+        });
+        if (res.ok) return 'ok';
+        if (res.status === 409) return 'conflict';
+      } catch {
+        // ネットワーク断: 1回だけリトライ
+      }
+    }
+    return 'failed';
+  },
 };
 
 // ===== 型定義 =====

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { API_BASE } from '../lib/api';
+import { api } from '../lib/api';
 
 const CHUNK_INTERVAL_MS = 5000; // 5秒ごとにチャンクをサーバーへ送る
 
@@ -35,22 +35,8 @@ export const useMediaRecorder = (): UseMediaRecorder => {
   const stoppingRef = useRef(false);
 
   const sendChunk = useCallback(async (blob: Blob, session: string, seq: number): Promise<boolean> => {
-    const url = `${API_BASE}/api/interviews/me/recording/chunk?session=${session}&seq=${seq}`;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'video/webm' },
-          body: blob,
-        });
-        if (res.ok) return true;
-        if (res.status === 409) return false; // 連番不整合 → このセッションは継続不能
-      } catch {
-        // ネットワーク断: 1回だけリトライ
-      }
-    }
-    return false;
+    const result = await api.postRecordingChunk(session, seq, blob);
+    return result === 'ok';
   }, []);
 
   // onstop からの再帰的な再開参照用（useCallback 内で自身を直接参照すると
