@@ -12,12 +12,11 @@
  *   DRY_RUN=1       削除を実行せず対象の一覧表示のみ行う
  */
 require("dotenv").config();
-const path = require("path");
 const fs = require("fs");
-const prisma = require("../src/lib/prisma");
-const { audit } = require("../src/lib/audit");
+const prisma = require("../../src/lib/prisma");
+const { audit } = require("../../src/lib/audit");
 
-const UPLOAD_DIR = path.join(__dirname, "..", "uploads");
+const { resolveUploadPath } = require("../../src/lib/storage");
 // 「0日」も有効な指定として扱う（|| だと 0 が falsy で既定値になってしまう）
 const RETENTION_DAYS = Number.isFinite(Number(process.env.RETENTION_DAYS)) && process.env.RETENTION_DAYS !== undefined
   ? Number(process.env.RETENTION_DAYS)
@@ -64,7 +63,7 @@ async function purgeOldRecordings() {
     if (DRY_RUN) continue;
 
     for (const key of keys) {
-      const filePath = path.join(UPLOAD_DIR, path.basename(key));
+      const filePath = resolveUploadPath(key);
       try {
         await fs.promises.unlink(filePath);
       } catch (err) {

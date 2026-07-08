@@ -4,7 +4,7 @@
  * 回答・録画レコードを削除し、状態を SCHEDULED に戻す（動作確認のやり直し用）。
  */
 require("dotenv").config();
-const prisma = require("../src/lib/prisma");
+const prisma = require("../../src/lib/prisma");
 
 async function main() {
   const interview = await prisma.interview.findUnique({

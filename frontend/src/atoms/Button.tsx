@@ -7,6 +7,8 @@ type ButtonProps = BootstrapButtonProps & {
   iconPosition?: 'left' | 'right';
   loading?: boolean;
   loadingText?: string;
+  /** react-bootstrap の ProgressBar 等が子要素に注入する内部 prop。DOM には流さない */
+  isChild?: boolean;
 };
 
 export const Button = ({
@@ -19,7 +21,9 @@ export const Button = ({
   disabled,
   ...props
 }: ButtonProps) => {
-  const { isChild, ...safeProps } = props as any; // ← これを追加！
+  // isChild が DOM 要素へ渡ると React が unknown attribute 警告を出すため除去する
+  const safeProps = { ...props };
+  delete safeProps.isChild;
 
   const buttonClasses = classNames(
     'd-inline-flex',

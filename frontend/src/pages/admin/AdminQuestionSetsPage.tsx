@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Form, Spinner } from 'react-bootstrap';
 import { Title, Button } from '@/atoms';
 import { Card, Table } from '@/molecules';
 import { Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { api, ApiError, type QuestionSetSummary } from '../../lib/api';
+import { useAdminApiError } from './useAdminApiError';
 
 /**
  * 質問セット管理ページ（管理者）
  * 一覧表示と新規作成（1行=1質問のテキストエリア入力）。
  */
 export const AdminQuestionSetsPage = () => {
-  const navigate = useNavigate();
+  const handleApiError = useAdminApiError();
   const [sets, setSets] = useState<QuestionSetSummary[] | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
@@ -26,13 +26,9 @@ export const AdminQuestionSetsPage = () => {
       const data = await api.get<{ questionSets: QuestionSetSummary[] }>('/api/admin/question-sets');
       setSets(data.questionSets);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        navigate('/admin/login');
-        return;
-      }
-      toast.error(err instanceof ApiError ? err.message : '質問セットの取得に失敗しました。');
+      handleApiError(err, '質問セットの取得に失敗しました。');
     }
-  }, [navigate]);
+  }, [handleApiError]);
 
   useEffect(() => {
     load();

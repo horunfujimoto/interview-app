@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Spinner, Alert } from 'react-bootstrap';
 import { Title, Badge, Button } from '@/atoms';
 import { Card, Table } from '@/molecules';
 import { Download, ArrowLeft } from 'lucide-react';
-import { toast } from 'react-toastify';
 import { api, ApiError, type AdminInterviewDetail } from '../../lib/api';
 import { InterviewQuestionEditor } from './InterviewQuestionEditor';
+import { useAdminApiError } from './useAdminApiError';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
@@ -15,7 +15,7 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
  */
 export const AdminInterviewDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const handleApiError = useAdminApiError();
   const [detail, setDetail] = useState<AdminInterviewDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -25,18 +25,14 @@ export const AdminInterviewDetailPage = () => {
         const data = await api.get<{ interview: AdminInterviewDetail }>(`/api/admin/interviews/${id}`);
         setDetail(data.interview);
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) {
-          navigate('/admin/login');
-          return;
-        }
         if (err instanceof ApiError && err.status === 404) {
           setNotFound(true);
           return;
         }
-        toast.error(err instanceof ApiError ? err.message : '面接詳細の取得に失敗しました。');
+        handleApiError(err, '面接詳細の取得に失敗しました。');
       }
     })();
-  }, [id, navigate]);
+  }, [id, handleApiError]);
 
   if (notFound) {
     return <Alert variant="danger">面接が見つかりません。</Alert>;
