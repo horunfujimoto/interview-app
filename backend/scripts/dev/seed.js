@@ -5,8 +5,8 @@
  * ※ ここの認証情報は開発専用。 本番では管理画面から発行すること。
  */
 require("dotenv").config();
-const prisma = require("../src/lib/prisma");
-const { hashPassword } = require("../src/lib/password");
+const prisma = require("../../src/lib/prisma");
+const { hashPassword } = require("../../src/lib/password");
 
 const QUESTIONS = [
   "あなたのこれまでのキャリアの中で、最も大きな困難は何でしたか？また、それをどのように乗り越えましたか？具体的な例を挙げて説明してください。",

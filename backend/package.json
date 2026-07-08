@@ -5,7 +5,9 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "dev": "nodemon server.js",
-    "maintenance": "node scripts/maintenance.js",
+    "seed": "node scripts/dev/seed.js",
+    "reset": "node scripts/dev/reset-interview.js",
+    "maintenance": "node scripts/ops/maintenance.js",
     "db:migrate": "prisma migrate dev && prisma generate",
     "db:generate": "prisma generate",
     "postinstall": "prisma generate"

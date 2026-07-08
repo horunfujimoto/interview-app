@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const crypto = require("crypto");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
