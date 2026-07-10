@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 
+const prisma = require("./src/lib/prisma");
 const authRouter = require("./src/routes/auth");
 const interviewsRouter = require("./src/routes/interviews");
 const adminRouter = require("./src/routes/admin");
@@ -65,8 +66,14 @@ const ipLimiter = rateLimit({
   message: RATE_MESSAGE,
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+// 死活監視用。DBに到達できない場合は 503 を返す（プロセス生存だけでは「正常」としない）
+app.get("/api/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok" });
+  } catch {
+    res.status(503).json({ status: "error", detail: "database_unreachable" });
+  }
 });
 
 app.use("/api/auth", ipLimiter, accountLimiter, authRouter);
@@ -79,6 +86,21 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
+
+// 終了シグナル受信時は新規接続の受付を止め、処理中のリクエスト完了と
+// DB切断を待ってから終了する（デプロイ・再起動時のリクエスト切断を防ぐ）
+let shuttingDown = false;
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  server.close(() => {
+    prisma.$disconnect().finally(() => process.exit(0));
+  });
+  server.closeIdleConnections?.(); // keep-alive の遊休接続が close を妨げないようにする
+  setTimeout(() => process.exit(1), 10_000).unref(); // 最長10秒で強制終了（ハング防止）
+}
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
