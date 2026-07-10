@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const prisma = require("../lib/prisma");
 
 const COOKIE_NAME = "iv_token"; // 応募者用
 const ADMIN_COOKIE_NAME = "iv_admin_token"; // 管理者用（応募者と別Cookieにして相互干渉を防ぐ）
@@ -37,21 +38,33 @@ function requireCandidate(req, res, next) {
  * 管理者認証ミドルウェア。
  * req.auth = { adminId, role: "admin", adminRole: "OWNER"|"RECRUITER" } を設定する。
  */
-function requireAdmin(req, res, next) {
+async function requireAdmin(req, res, next) {
   const token = req.cookies?.[ADMIN_COOKIE_NAME];
   if (!token) {
     return res.status(401).json({ error: "認証が必要です。" });
   }
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (payload.role !== "admin") {
-      return res.status(403).json({ error: "この操作を行う権限がありません。" });
-    }
-    req.auth = payload;
-    next();
+    payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch {
     return res.status(401).json({ error: "セッションが無効か期限切れです。再度ログインしてください。" });
   }
+  if (payload.role !== "admin") {
+    return res.status(403).json({ error: "この操作を行う権限がありません。" });
+  }
+
+  // JWT は発行後に取り消せないため、毎リクエストでアカウントの現存をDBで照合する。
+  // 削除された管理者のセッションがトークン期限（8時間）まで生き続けるのを防ぐ。
+  // ロールもトークンの値ではなくDBの現在値を使い、権限変更を即時反映する。
+  const admin = await prisma.adminUser.findUnique({
+    where: { id: payload.adminId },
+    select: { id: true, role: true },
+  });
+  if (!admin) {
+    return res.status(401).json({ error: "セッションが無効か期限切れです。再度ログインしてください。" });
+  }
+  req.auth = { adminId: admin.id, role: "admin", adminRole: admin.role };
+  next();
 }
 
 module.exports = { requireCandidate, requireAdmin, COOKIE_NAME, ADMIN_COOKIE_NAME, MFA_COOKIE_NAME, cookieOptions };
