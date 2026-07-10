@@ -4,6 +4,8 @@
 # Environment variables
 .env
 .env.*
+# 設定テンプレートは共有する
+!.env.example
 
 # Build outputs
 dist/
@@ -28,7 +30,7 @@ generated/prisma/
 
 # other
 ui
-docs
+docs/venv/
 readme_for_claudecode.md
 coding_rule.md
 # Playwright MCP セッション成果物
