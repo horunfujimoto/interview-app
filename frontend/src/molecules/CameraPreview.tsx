@@ -43,7 +43,9 @@ export const CameraPreview = ({ stream, hasError, onRetry, className }: CameraPr
 
   return (
     <div className={wrapperClasses} style={{ height: '250px' }}> {/* Fixed height as per HTML example */}
-      <video ref={videoRef} autoPlay muted className={classNames("w-100 h-100", { "d-none": hasError })} style={{ objectFit: 'cover' }} />
+      {/* 自分用プレビューは鏡像表示する（鏡を見慣れているため生映像は反転して見える）。
+          表示だけの反転であり、録画されるデータには影響しない */}
+      <video ref={videoRef} autoPlay muted className={classNames("w-100 h-100", { "d-none": hasError })} style={{ objectFit: 'cover', transform: 'scaleX(-1)' }} />
 
       {hasError && (
         <div className="position-absolute top-0 start-0 w-100 h-100 bg-black bg-opacity-75 d-flex flex-column align-items-center justify-content-center text-white p-3">
