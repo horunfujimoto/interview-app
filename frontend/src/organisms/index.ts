@@ -4,3 +4,4 @@ export * from './Sidebar';
 export * from './AIAvatarDisplay';
 export * from './InterviewHeader';
 export * from './InterviewFooter';
+export * from './ErrorBoundary';
