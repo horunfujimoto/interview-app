@@ -5,7 +5,9 @@ const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const pinoHttp = require("pino-http");
 
+const logger = require("./src/lib/logger");
 const prisma = require("./src/lib/prisma");
 const authRouter = require("./src/routes/auth");
 const interviewsRouter = require("./src/routes/interviews");
@@ -15,12 +17,24 @@ const { errorHandler } = require("./src/middlewares/errorHandler");
 // 起動前チェック: 必須の環境変数がなければ即終了（設定漏れの早期発見）
 for (const key of ["DATABASE_URL", "JWT_SECRET"]) {
   if (!process.env[key]) {
-    console.error(`環境変数 ${key} が設定されていません。backend/.env を確認してください。`);
+    logger.fatal(`環境変数 ${key} が設定されていません。backend/.env を確認してください。`);
     process.exit(1);
   }
 }
 
 const app = express();
+
+// リクエストログ（requestId 付き）。各リクエストの開始〜完了とステータスを記録し、
+// ルート内では req.log 経由でリクエストに紐付いたログを出せる。
+app.use(
+  pinoHttp({
+    logger,
+    // Cookie には認証トークンが入るためログへ出力しない
+    redact: ["req.headers.cookie", "req.headers.authorization"],
+    // 死活監視の定期アクセスでログが埋まらないようにする
+    autoLogging: { ignore: (req) => req.url === "/api/health" },
+  })
+);
 
 // リバースプロキシ（nginx / ALB 等）配下では TRUST_PROXY にホップ数を設定する（例: 1）。
 // 未設定のまま本番プロキシ配下に置くと、全ユーザーの req.ip がプロキシの IP になり、
@@ -87,7 +101,7 @@ app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3001;
 const server = app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  logger.info(`Backend running on http://localhost:${PORT}`);
 });
 
 // 終了シグナル受信時は新規接続の受付を止め、処理中のリクエスト完了と

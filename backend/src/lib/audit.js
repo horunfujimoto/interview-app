@@ -1,4 +1,5 @@
 const prisma = require("./prisma");
+const logger = require("./logger");
 
 /**
  * 監査ログを記録する。ログ失敗で本処理を止めないよう例外は握りつぶす。
@@ -14,7 +15,7 @@ async function audit(actorType, actorId, action, detail = null, ipAddress = null
       data: { actorType, actorId, action, detail, ipAddress },
     });
   } catch (err) {
-    console.error("監査ログの記録に失敗:", err);
+    logger.error({ err, actorType, actorId, action }, "監査ログの記録に失敗");
   }
 }
 

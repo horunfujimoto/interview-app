@@ -37,6 +37,16 @@ cd backend && npm run maintenance
 
 `GET /api/health` — DBへ疎通確認（`SELECT 1`）を行い、到達できない場合は503を返す。死活監視はこのエンドポイントを見る。
 
+## アプリケーションログ
+
+pino による構造化ログを標準出力に出す（`src/lib/logger.js`）。
+
+- 本番（`NODE_ENV=production`）: JSON 1行1イベント。systemd / Docker / CloudWatch 等の収集基盤にそのまま渡せる
+- 開発時: pino-pretty で整形表示
+- 全リクエストに requestId が付与され、エラーログと突き合わせられる（`/api/health` は記録しない）
+- Cookie / Authorization ヘッダはトークンを含むため必ずマスクされる
+- `LOG_LEVEL` で出力レベルを変更できる（既定: info）
+
 ## 監査ログ
 
 `AuditLog` テーブルに記録される（アプリからの削除機能は無い）:

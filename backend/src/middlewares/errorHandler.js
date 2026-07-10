@@ -1,4 +1,5 @@
 const { ZodError } = require("zod");
+const logger = require("../lib/logger");
 
 /**
  * 集約エラーハンドラ。
@@ -25,7 +26,8 @@ function errorHandler(err, req, res, next) {
     return res.status(status).json({ error: "リクエストの形式が正しくありません。" });
   }
 
-  console.error(`[${req.method} ${req.originalUrl}]`, err);
+  // req.log は pino-http が注入する requestId 付きロガー（リクエストログと突き合わせ可能）
+  (req.log ?? logger).error({ err }, `${req.method} ${req.originalUrl} で未処理エラー`);
   res.status(500).json({ error: "サーバーエラーが発生しました。しばらくしてから再度お試しください。" });
 }
 
