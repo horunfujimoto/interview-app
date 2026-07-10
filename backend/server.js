@@ -9,6 +9,7 @@ const pinoHttp = require("pino-http");
 
 const logger = require("./src/lib/logger");
 const prisma = require("./src/lib/prisma");
+const { audit } = require("./src/lib/audit");
 const authRouter = require("./src/routes/auth");
 const interviewsRouter = require("./src/routes/interviews");
 const adminRouter = require("./src/routes/admin");
@@ -60,6 +61,12 @@ app.use(cookieParser());
 // 2層目（IP単位）: 15分60回。単一IPから多数のIDを総当たりする攻撃の総量を抑える。
 const RATE_MESSAGE = { error: "試行回数が上限に達しました。しばらくしてから再度お試しください。" };
 
+// レート制限発動は総当たり攻撃の兆候のため監査ログに残す（layer で発動層を区別）
+const rateLimitHandler = (layer) => async (req, res, next, options) => {
+  await audit("system", req.ip ?? "unknown", "ratelimit.hit", `layer=${layer} path=${req.originalUrl}`, req.ip);
+  res.status(options.statusCode).json(RATE_MESSAGE);
+};
+
 const accountLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
@@ -69,7 +76,7 @@ const accountLimiter = rateLimit({
     const account = String(req.body?.loginId ?? req.body?.email ?? "").slice(0, 200).toLowerCase();
     return `${ipKeyGenerator(req.ip)}|${account}`;
   },
-  message: RATE_MESSAGE,
+  handler: rateLimitHandler("account"),
 });
 
 const ipLimiter = rateLimit({
@@ -77,7 +84,7 @@ const ipLimiter = rateLimit({
   limit: 60,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: RATE_MESSAGE,
+  handler: rateLimitHandler("ip"),
 });
 
 // 死活監視用。DBに到達できない場合は 503 を返す（プロセス生存だけでは「正常」としない）
