@@ -49,7 +49,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <div className={classNames('video-wrapper', className)}>
-      <video ref={videoRef} autoPlay playsInline muted={muted} className="object-cover w-100 h-100"></video>
+      {/* 自分用プレビューは鏡像表示する（表示のみ。録画データには影響しない） */}
+      <video ref={videoRef} autoPlay playsInline muted={muted} className="object-cover w-100 h-100" style={{ transform: 'scaleX(-1)' }}></video>
       <div className={micStatusClasses}>
         {isMicActive === true && <Mic size={16} />}
         {isMicActive === false && <MicOff size={16} />}
