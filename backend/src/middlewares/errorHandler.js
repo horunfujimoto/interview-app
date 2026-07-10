@@ -18,6 +18,14 @@ function errorHandler(err, req, res, next) {
     return res.status(413).json({ error: "ファイルサイズが上限を超えています。" });
   }
 
+  // アプリが明示的に投げたユーザー向けエラー（multer の fileFilter 等、
+  // ミドルウェア内で res に触れない箇所から返す）。userMessage はそのまま見せてよい文言。
+  if (typeof err.userMessage === "string") {
+    return res
+      .status(Number.isInteger(err.status) ? err.status : 400)
+      .json({ error: err.userMessage });
+  }
+
   // http-errors 系（body-parser の JSON 構文エラー 400、raw の entity.too.large 413 等）。
   // expose=true は「メッセージをクライアントに見せてよい」印だが、内部文言の直返しは
   // 避け、ステータスのみ引き継いで汎用メッセージを返す。

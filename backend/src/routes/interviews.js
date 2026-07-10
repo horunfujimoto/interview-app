@@ -24,7 +24,11 @@ const upload = multer({
     if (["video/webm", "audio/webm"].includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("webm 形式のみアップロード可能です。"));
+      // userMessage 付きで投げると errorHandler が 400 + この文言で返す（素の Error だと 500 になる）
+      const err = new Error("webm 形式のみアップロード可能です。");
+      err.status = 400;
+      err.userMessage = err.message;
+      cb(err);
     }
   },
 });
