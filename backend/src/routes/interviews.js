@@ -285,7 +285,19 @@ router.post(
       return res.status(409).json({ error: "チャンクの順序が不正です。", expected: (current?.lastSeq ?? 0) + 1 });
     }
 
-    await fs.promises.appendFile(resolveUploadPath(storageKey), req.body);
+    try {
+      await fs.promises.appendFile(resolveUploadPath(storageKey), req.body);
+    } catch (err) {
+      // 追記失敗（ディスクフル等）のまま lastSeq が進むと、ファイルに欠落があるのに
+      // 後続チャンクを受理し続けて壊れたセグメントになる。受理を取り消してから 500 を返す。
+      // 正常なクライアントは応答を受けるまで次チャンクを送らないため、この時点で
+      // lastSeq は自分の seq のまま＝巻き戻しは安全（条件付き更新で念のため保証する）。
+      await prisma.recordingSegment.updateMany({
+        where: { id: segment.id, lastSeq: seq },
+        data: { lastSeq: seq - 1, sizeBytes: { decrement: BigInt(req.body.length) } },
+      });
+      throw err;
+    }
     if (seq === 1) {
       await audit("candidate", interview.id, "recording.segment_start", `session=${sessionId}`, req.ip);
     }
