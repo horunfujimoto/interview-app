@@ -132,6 +132,27 @@ export interface AdminUser {
   role: 'OWNER' | 'RECRUITER';
 }
 
+export interface AdminMeResponse {
+  admin: AdminUser;
+}
+
+export interface AdminAuditLog {
+  id: number;
+  actorType: 'admin' | 'candidate' | 'system';
+  actorId: string;
+  action: string;
+  detail: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+export interface AdminAuditLogsResponse {
+  logs: AdminAuditLog[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface AdminLoginResponse {
   /** パスワード認証後の次ステップ（setup_required: 初回 / code_required: 2回目以降） */
   mfa: 'setup_required' | 'code_required';

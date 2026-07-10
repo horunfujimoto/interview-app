@@ -8,6 +8,7 @@ import {
   AdminInterviewNewPage,
   AdminInterviewDetailPage,
   AdminQuestionSetsPage,
+  AdminAuditLogsPage,
 } from './pages/admin';
 // import React from 'react'; // React is needed for JSX (even if not explicitly used) - Removed
 import { ToastContainer } from 'react-toastify'; // Import ToastContainer
@@ -37,6 +38,7 @@ function App() {
           <Route path="interviews/new" element={<AdminInterviewNewPage />} />
           <Route path="interviews/:id" element={<AdminInterviewDetailPage />} />
           <Route path="question-sets" element={<AdminQuestionSetsPage />} />
+          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         </Route>
 
         {/* コンポーネントテスト用ページ */}

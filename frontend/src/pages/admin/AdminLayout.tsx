@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, NavLink } from 'react-router-dom';
-import { Users, FilePlus, ListChecks, LogOut } from 'lucide-react';
+import { Users, FilePlus, ListChecks, ScrollText, LogOut } from 'lucide-react';
 import { Nav } from 'react-bootstrap';
 import { Logo } from '@/atoms';
-import { api } from '../../lib/api';
+import { api, type AdminMeResponse, type AdminUser } from '../../lib/api';
 import { toast } from 'react-toastify';
 
 /**
@@ -10,6 +11,20 @@ import { toast } from 'react-toastify';
  */
 export const AdminLayout = () => {
   const navigate = useNavigate();
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+
+  // ロール別のメニュー出し分け用（取得失敗時は共通メニューのみ表示。
+  // 401 は各ページ側の useAdminApiError がログインへ誘導する）
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.get<AdminMeResponse>('/api/admin/me');
+        setAdmin(data.admin);
+      } catch {
+        /* 出し分けを諦めるだけで画面遷移は妨げない */
+      }
+    })();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -45,6 +60,12 @@ export const AdminLayout = () => {
               <ListChecks size={17} />
               質問セット
             </NavLink>
+            {admin?.role === 'OWNER' && (
+              <NavLink to="/admin/audit-logs" className={linkClass}>
+                <ScrollText size={17} />
+                監査ログ
+              </NavLink>
+            )}
           </Nav>
         </div>
 

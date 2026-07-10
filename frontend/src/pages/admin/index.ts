@@ -5,3 +5,4 @@ export * from './AdminInterviewsPage';
 export * from './AdminInterviewNewPage';
 export * from './AdminInterviewDetailPage';
 export * from './AdminQuestionSetsPage';
+export * from './AdminAuditLogsPage';
