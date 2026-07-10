@@ -1,51 +1,82 @@
-import React, { useEffect, useCallback } from 'react'; // useStateを削除
-import { Container, Row, Col } from 'react-bootstrap';
+import React, { useEffect, useCallback, useRef } from 'react';
+import { Container, Row, Col, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import {
   AIAvatarDisplay,
   InterviewHeader,
   InterviewFooter,
 } from '../organisms';
 import { QuestionBox, VideoPlayer, HintBox, TimerDisplay } from '../molecules';
-import { useInterviewTimers, useMediaStream, useInterviewProcess } from '../hooks';
+import { useInterviewTimers, useMediaStream, useInterviewProcess, useMediaRecorder } from '../hooks';
 import classNames from 'classnames';
-import { toast } from 'react-toastify'; // エラー表示のためにreact-toastifyを仮定
+import { toast } from 'react-toastify';
 
 const InterviewPage: React.FC = () => {
-  // ダミーの面接ID (実際にはルーティングパラメータなどから取得)
-  const DUMMY_INTERVIEW_ID = '4892-C01-S3';
+  const navigate = useNavigate();
 
   // カスタムフック
   const { totalTime, responseRemainingTime, startTimers, resetResponseTimer } = useInterviewTimers();
   const { stream, isMicActive, error: mediaError } = useMediaStream();
+  const { isRecording, hasUploadTrouble, startRecording, stopRecording } = useMediaRecorder();
   const {
+    interviewId,
     currentQuestionSequence,
     totalQuestions,
     questionTitle,
     questionText,
+    timeLimitSec,
     isLoading,
     error: interviewProcessError,
+    isUnauthorized,
+    needsStart,
     submitAnswerAndNext,
     finishInterview,
     hasInterviewFinished,
-  } = useInterviewProcess(DUMMY_INTERVIEW_ID);
+  } = useInterviewProcess();
 
-  // 初期化処理
+  // 質問表示からの経過時間を計測（回答時間として送信する）
+  const questionStartedAtRef = useRef<number>(Date.now());
+  const isUploadingRef = useRef(false);
+
+  // 初期化: タイマー開始
   useEffect(() => {
-    // MediaStreamの取得を試みる (useMediaStream内で自動的に行われるが、明示的に呼び出す場合)
-    // getMediaStream(); // useMediaStream内で自動的に実行されるため、コメントアウト
-
-    // タイマーを開始
     startTimers();
-
-    return () => {
-      // ページを離れる際のクリーンアップ (useInterviewTimers内でclearInterval済み)
-    };
   }, [startTimers]);
 
-  // 質問が切り替わったら応答タイマーをリセット
+  // ストリームが取れたら録画開始
   useEffect(() => {
-    resetResponseTimer();
-  }, [currentQuestionSequence, resetResponseTimer]);
+    if (stream) {
+      startRecording(stream);
+    }
+  }, [stream, startRecording]);
+
+  // 質問が切り替わったら応答タイマーをリセット（質問ごとの制限時間を反映）
+  useEffect(() => {
+    resetResponseTimer(timeLimitSec);
+    questionStartedAtRef.current = Date.now();
+  }, [currentQuestionSequence, timeLimitSec, resetResponseTimer]);
+
+  // セッション切れ → ログイン画面へ
+  useEffect(() => {
+    if (isUnauthorized) {
+      toast.error('セッションの有効期限が切れました。再度ログインしてください。');
+      navigate('/applicant/login');
+    }
+  }, [isUnauthorized, navigate]);
+
+  // 未開始のまま面接画面を開いた → 接続確認へ
+  useEffect(() => {
+    if (needsStart) {
+      navigate('/applicant/confirmation');
+    }
+  }, [needsStart, navigate]);
+
+  // 録画アップロードの継続失敗を警告（録画自体は新セッションで継続している）
+  useEffect(() => {
+    if (hasUploadTrouble) {
+      toast.warning('録画の送信が不安定です。ネットワーク接続を確認してください。面接はこのまま続けられます。');
+    }
+  }, [hasUploadTrouble]);
 
   // メディアアクセスエラーのトースト表示
   useEffect(() => {
@@ -61,16 +92,26 @@ const InterviewPage: React.FC = () => {
     }
   }, [interviewProcessError]);
 
-  // 面接終了時の処理
+  // 面接終了時: 録画を停止し、未送信チャンクを送り切ってから終了画面へ
+  // （チャンクは面接中に逐次アップロード済みのため、ここで待つのは残りわずか）
   useEffect(() => {
-    if (hasInterviewFinished) {
-      // TODO: 面接完了画面へのリダイレクトなど
-      console.log('面接が完全に終了しました。');
-    }
-  }, [hasInterviewFinished]);
+    if (!hasInterviewFinished || isUploadingRef.current) return;
+    isUploadingRef.current = true;
+
+    (async () => {
+      try {
+        await stopRecording();
+      } catch (err) {
+        console.error('録画の停止処理に失敗しました:', err);
+      } finally {
+        navigate('/applicant/finish');
+      }
+    })();
+  }, [hasInterviewFinished, stopRecording, navigate]);
 
   const handleNextQuestion = useCallback(async () => {
-    await submitAnswerAndNext();
+    const durationSec = Math.round((Date.now() - questionStartedAtRef.current) / 1000);
+    await submitAnswerAndNext(durationSec);
   }, [submitAnswerAndNext]);
 
   const handleFinishInterview = useCallback(async () => {
@@ -79,13 +120,22 @@ const InterviewPage: React.FC = () => {
     }
   }, [finishInterview]);
 
+  // 初回ロード中はスピナーを表示
+  if (isLoading && !questionText && !hasInterviewFinished) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100 bg-dark text-white">
+        <Spinner animation="border" role="status" className="me-3" />
+        <span>面接の準備をしています...</span>
+      </div>
+    );
+  }
 
   return (
     <div className={classNames('interview-grid', 'd-flex', 'flex-column', 'min-vh-100', 'bg-dark', 'text-white')}>
       {/* ヘッダー */}
       <InterviewHeader
-        interviewId={DUMMY_INTERVIEW_ID}
-        isRecording={true} // TODO: 録画ステータスをuseMediaStreamから取得
+        interviewId={interviewId ?? ''}
+        isRecording={isRecording}
         totalTimeInSeconds={totalTime}
       />
 

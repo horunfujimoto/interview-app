@@ -1,32 +1,28 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import classNames from 'classnames';
-import { type LucideIcon } from 'lucide-react'; // Rabbitを削除
 
 interface AIAvatarDisplayProps {
-  avatarIcon?: LucideIcon | string; // Lucide Icon または絵文字などの文字列
   avatarName?: string;
+  /** 発話中はバーが動く（将来 TTS 連携時に使用） */
+  isSpeaking?: boolean;
   className?: string;
 }
 
 /**
  * AIAvatarDisplay Organism
- * AIアバターと名前を表示するコンポーネント。
- * @param {AIAvatarDisplayProps} props - The props for the component.
+ * AI面接官の存在を示す「波形オーブ」。
+ * 声で応対する存在であることを、顔ではなく音声波形のメタファーで表現する。
  */
 export const AIAvatarDisplay: React.FC<AIAvatarDisplayProps> = ({
-  avatarIcon: AvatarIconOrString = '🐇', // デフォルトは絵文字
-  avatarName = 'AI面接官（ラビット）',
+  avatarName = 'AI面接官',
+  isSpeaking = true,
   className = '',
 }) => {
-  const isLucideIcon = typeof AvatarIconOrString !== 'string';
-
   return (
     <Card className={classNames(
-      'ai-avatar-box', // App.cssで定義
+      'ai-avatar-box',
       'p-8',
-      'rounded-xl',
-      'shadow-lg',
       'd-flex',
       'flex-column',
       'align-items-center',
@@ -34,14 +30,14 @@ export const AIAvatarDisplay: React.FC<AIAvatarDisplayProps> = ({
       'h-64',
       className
     )}>
-      {isLucideIcon ? (
-        // LucideIconの場合
-        <AvatarIconOrString size={80} className="avatar-icon text-primary-blue" />
-      ) : (
-        // 絵文字などの文字列の場合
-        <span className="avatar-icon" role="img" aria-label="Avatar">{AvatarIconOrString}</span>
-      )}
-      <p className="mt-4 text-gray-200 text-lg font-weight-semibold">{avatarName}</p>
+      <div className={classNames('ai-orb', isSpeaking && 'is-speaking')} role="img" aria-label={avatarName}>
+        <span className="ai-orb-bar" />
+        <span className="ai-orb-bar" />
+        <span className="ai-orb-bar" />
+        <span className="ai-orb-bar" />
+        <span className="ai-orb-bar" />
+      </div>
+      <p className="mt-4 text-gray-200 text-lg font-weight-semibold mb-0">{avatarName}</p>
     </Card>
   );
 };

@@ -13,6 +13,8 @@ model AdminUser {
   passwordHash String // bcrypt ハッシュ。平文は保存しない
   name         String
   role         AdminRole   @default(RECRUITER)
+  totpSecret   String? // TOTP秘密鍵（base32）。セットアップ完了までは仮保存
+  totpEnabled  Boolean     @default(false) // 初回ログイン後のセットアップ完了で true
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   interviews   Interview[]
@@ -42,9 +44,22 @@ model Question {
   text          String
   timeLimitSec  Int         @default(180) // 質問ごとの回答制限時間
   aiFollowUp    Boolean     @default(false) // HYBRID時にAI追質問を許可するか
-  answers       Answer[]
 
   @@unique([questionSetId, sequence])
+}
+
+// ===== 面接ごとの質問（セットからのコピー + 応募者別カスタマイズ） =====
+// 面接発行時に質問セットの内容をコピーし、応募者ごとに追加・編集・削除できる。
+// 元のセット（テンプレート）には影響しない。面接開始前（SCHEDULED）のみ編集可。
+model InterviewQuestion {
+  id           Int       @id @default(autoincrement())
+  interviewId  String
+  interview    Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  sequence     Int // 面接内での出題順
+  text         String
+  timeLimitSec Int       @default(180)
+
+  @@unique([interviewId, sequence])
 }
 
 // ===== 面接（1応募者1面接） =====
@@ -66,9 +81,11 @@ model Interview {
   createdById    Int
   createdBy      AdminUser          @relation(fields: [createdById], references: [id])
   createdAt      DateTime           @default(now())
-  answers        Answer[]
-  recording      Recording?
-  aiSummary      AiSummary?
+  answers           Answer[]
+  questions         InterviewQuestion[]
+  recording         Recording?
+  recordingSegments RecordingSegment[]
+  aiSummary         AiSummary?
 }
 
 enum InterviewMode {
@@ -98,22 +115,41 @@ model AiInterviewConfig {
 }
 
 // ===== 回答 =====
+// 質問文は questionText にスナップショット保存する（後から質問が編集されても
+// 「実際に何を聞かれて答えたか」の記録が変わらないようにするため）
 model Answer {
-  id             Int       @id @default(autoincrement())
-  interviewId    String
-  interview      Interview @relation(fields: [interviewId], references: [id])
-  questionId     Int? // FIXED質問の場合のみ
-  question       Question? @relation(fields: [questionId], references: [id])
-  aiQuestionText String? // AI生成質問の場合、質問文をここに保存
-  sequence       Int // 面接内での通し番号
-  transcript     String? // 文字起こし（音声→テキスト）
-  durationSec    Int?
-  answeredAt     DateTime  @default(now())
+  id           Int       @id @default(autoincrement())
+  interviewId  String
+  interview    Interview @relation(fields: [interviewId], references: [id])
+  questionText String    @default("") // 出題時点の質問文（AI生成質問もここに保存）
+  isAiGenerated Boolean  @default(false) // AI生成質問への回答か
+  sequence     Int // 面接内での通し番号
+  transcript   String? // 文字起こし（音声→テキスト）
+  durationSec  Int?
+  answeredAt   DateTime  @default(now())
 
   @@unique([interviewId, sequence])
 }
 
-// ===== 録画 =====
+// ===== 録画セグメント（逐次アップロード） =====
+// 面接中、5秒ごとのチャンクをサーバーに追記していく。
+// リロード等で録画セッションが切れると新しいセグメント（別ファイル）になる。
+// クラッシュしてもアップロード済みのぶんは保全される。
+model RecordingSegment {
+  id          Int       @id @default(autoincrement())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  sessionId   String // クライアントが録画セッションごとに生成
+  storageKey  String // uploads/ 配下のファイル名
+  sizeBytes   BigInt    @default(0)
+  lastSeq     Int       @default(0) // 受理済みチャンク連番（順序保証・重複排除用）
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([interviewId, sessionId])
+}
+
+// ===== 録画（旧: 一括アップロード。互換のため保持） =====
 model Recording {
   id          Int       @id @default(autoincrement())
   interviewId String    @unique

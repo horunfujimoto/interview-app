@@ -4,9 +4,12 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 import './App.scss' // <-- Add this line
 import App from './App.tsx'
+import { ErrorBoundary } from './organisms/ErrorBoundary'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

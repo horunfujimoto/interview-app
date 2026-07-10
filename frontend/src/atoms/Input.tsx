@@ -4,12 +4,11 @@ import type { FormControlProps } from 'react-bootstrap'; // Needed for type exte
 import type React from 'react'; // Added for React.TextareaHTMLAttributes
 
 // InputProps is generic on C, and combines props from C with FormControlProps
-// This is the structure react-bootstrap expects for polymorphic components
-type InputProps<C extends React.ElementType = 'input'> = Omit<React.ComponentProps<C>, keyof FormControlProps | 'className'> & FormControlProps & (
-  C extends 'textarea' // If 'as' is 'textarea'
-    ? React.TextareaHTMLAttributes<HTMLTextAreaElement> // Allow textarea specific props like 'rows'
-    : {} // Otherwise, no additional props
-);
+// `as` を C として宣言することで <Input as="textarea" rows={3}> のように
+// 要素固有の props（rows 等）が型推論される
+type InputProps<C extends React.ElementType = 'input'> =
+  Omit<React.ComponentProps<C>, keyof FormControlProps | 'className'> &
+  Omit<FormControlProps, 'as'> & { as?: C };
 
 export const Input = <C extends React.ElementType = 'input'>({
   as,
@@ -18,9 +17,9 @@ export const Input = <C extends React.ElementType = 'input'>({
 }: InputProps<C>) => {
   return (
     <Form.Control
-      as={as} // Explicitly pass 'as' prop
+      as={as as React.ElementType} // Explicitly pass 'as' prop
       className={classNames(className)}
-      {...props}
+      {...(props as FormControlProps)}
     />
   );
 };

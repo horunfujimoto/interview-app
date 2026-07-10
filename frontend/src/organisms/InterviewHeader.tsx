@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar, Container } from 'react-bootstrap'; // Row, Colを削除
-import { Rabbit, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { LogoMark } from '@/atoms';
 import { TimerDisplay } from '@/molecules';
 import classNames from 'classnames';
 
@@ -18,8 +19,8 @@ interface InterviewHeaderProps {
  * @param {InterviewHeaderProps} props - The props for the component.
  */
 export const InterviewHeader: React.FC<InterviewHeaderProps> = ({
-  appName = 'AI 面接',
-  interviewId = '4892-C01-S3',
+  appName = 'Prelude',
+  interviewId = '',
   isRecording,
   totalTimeInSeconds,
   className = '',
@@ -27,12 +28,14 @@ export const InterviewHeader: React.FC<InterviewHeaderProps> = ({
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className={classNames('p-3', 'shadow-md', 'z-10', className)}>
       <Container fluid>
-        <div className="d-flex align-items-center space-x-2">
-          <Rabbit size={24} className="text-primary-blue me-2" />
-          <span className="h4 mb-0 font-weight-bold">{appName}</span>
-          <span className="text-sm font-weight-light text-gray-300 ms-4 d-none d-sm-inline">
-            | 面接ID: {interviewId}
-          </span>
+        <div className="d-flex align-items-center gap-2">
+          <LogoMark size={26} />
+          <span className="h5 mb-0 fw-bold logo-wordmark">{appName}</span>
+          {interviewId && (
+            <span className="text-sm text-gray-400 ms-3 d-none d-sm-inline">
+              面接ID: <code className="stage-code">{interviewId}</code>
+            </span>
+          )}
         </div>
         <div className="d-flex align-items-center space-x-4">
           {/* 録画ステータス */}

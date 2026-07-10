@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const INITIAL_RESPONSE_TIME = 45; // 秒
+// 秒（制限時間未指定時のフォールバック）。
+// サーバー側の質問既定値（InterviewQuestion.timeLimitSec = 180）と揃えている。
+// 実際の値は質問取得後に resetResponseTimer(timeLimitSec) で上書きされる。
+const INITIAL_RESPONSE_TIME = 180;
 
 interface UseInterviewTimers {
   totalTime: number;
   responseRemainingTime: number;
   startTimers: () => void;
-  resetResponseTimer: () => void;
+  resetResponseTimer: (timeLimitSec?: number) => void;
 }
 
 /**
@@ -45,8 +48,8 @@ export const useInterviewTimers = (): UseInterviewTimers => {
     }, 1000);
   }, []);
 
-  const resetResponseTimer = useCallback(() => {
-    setResponseRemainingTime(INITIAL_RESPONSE_TIME);
+  const resetResponseTimer = useCallback((timeLimitSec?: number) => {
+    setResponseRemainingTime(timeLimitSec ?? INITIAL_RESPONSE_TIME);
     startResponseTimer(); // リセット後にタイマーを再開
   }, [startResponseTimer]);
 
